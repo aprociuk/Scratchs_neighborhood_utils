@@ -216,3 +216,28 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Output logs:
+*.log
+*.lst
+
+# Tabular data
+*.json
+*.csv
+*.xls
+*.xlsx
+*.xml
+*.parquet
+*.feather
+*.db
+
+# Graphics
+*.png
+*.jpg
+*.bmp
+
+# General binary, executable, disk image
+.DS_Store
+*.exe
+*.dmg
+*.sh
