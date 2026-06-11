@@ -46,7 +46,7 @@ def global_parameters(report_paths=True):
         dpath = g['data_path']
     """
         
-    repo_name='fun_stats_analyses'
+    repo_name='Scratchs_neighborhood_utils'
     
     prog_path = os.getcwd()
     prog_base = prog_path.split(repo_name)[0]
