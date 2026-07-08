@@ -39,3 +39,12 @@ def load_save_path(path=None):
         with open(file_name, "w", encoding="utf-8") as file:
             file.write(path)
 
+
+def weave_scratch_list(names_file, values_file):
+    status_str = "\n"
+
+    namesdf=pd.read_csv(names_file, names=['parameter'])
+    status_str += f"\nLoaded file:\n --{names_file} ({namesdf.size} records)"
+    
+    valuesdf=pd.read_csv(values_file, names=['value'])
+    status_str += f"\nLoaded file:\n --{values_file} ({valuesdf.size} records)"
