@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from _000_system_include.global_functions import global_parameters
 
 def file_exists(mypath, myfiles):
@@ -57,4 +58,28 @@ def weave_scratch_list(names_file, values_file):
         status_str += f"\nLOADED FILES NOT WEAVED: Unequal record counts."
     
     return weaved_df, status_str
+
+
+def archive_files(mypath, myfiles):
+    # Get current date and time
+    now = datetime.now()
+    # Format as a readable string (e.g., "2026-07-11 12:35:00")
+    mysubfldr = now.strftime("%Y%m%d_%Hh%Mm%Ss")
+    
+    # Determine if at least one of the files exists (for archiving purposes)
+    one_file_exists = False
+    for myfile in myfiles:
+        one_file_exists = one_file_exists or os.path.isfile(os.path.join(mypath, myfile))
+    
+    if one_file_exists:
+        arch_path = os.path.join(mypath, mysubfldr)
+        os.path.mkdirs(arch_path)
+    
+    for myfile in myfiles:
+        if os.path.isfile(os.path.join(mypath, myfile)):
+            os.rename(
+                os.path.join(mypath, myfile), 
+                os.path.join(arch_path, myfile)
+            )
+
 
