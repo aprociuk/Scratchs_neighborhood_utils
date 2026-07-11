@@ -53,6 +53,7 @@ def weave_scratch_list(names_file, values_file):
         weaved_df = pd.merge(namesdf, valuesdf, left_index=True, right_index=True)
         status_str += f"\nLOADED FILES SUCCESSFULLY WEAVED"
     else:
+        weaved_df = pd.DataFrame([])
         status_str += f"\nLOADED FILES NOT WEAVED: Unequal record counts."
     
     return weaved_df, status_str
