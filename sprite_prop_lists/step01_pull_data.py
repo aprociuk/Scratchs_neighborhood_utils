@@ -61,6 +61,8 @@ def weave_scratch_list(names_file, values_file):
 
 
 def archive_files(mypath, myfiles):
+    status_str = "\n"
+    
     # Get current date and time
     now = datetime.now()
     # Format as a readable string (e.g., "2026-07-11 12:35:00")
@@ -81,5 +83,25 @@ def archive_files(mypath, myfiles):
                 os.path.join(mypath, myfile), 
                 os.path.join(arch_path, myfile)
             )
+            status_str += f"\nFound file {myfile}: archived to subfolder {mysubfldr}"
+    
+    return status_str
+
+
+def write_files(mypath, mydfs, myfiles):
+    status_str = archive_files(mypath, myfiles)
+    if len(mydfs) == lent(myfiles):
+        for n in len(mydfs):
+            mydfs[n].to_csv(
+                path_or_buf=os.path.join(mypath, myfiles[n]), 
+                header=False, 
+                index=False
+            )
+            status_str += f"\nWrote {myfiles[n]}"
+    else:
+        status_str += f"\nINTERNAL ERROR: Number of lists ({len(mydfs[n])}) and number of files ({len(myfiles[n])}) differ.  No files written."
+        
+    return status_str
+
 
 
