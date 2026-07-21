@@ -104,4 +104,8 @@ def write_files(mypath, mydfs, myfiles):
     return status_str
 
 
-
+def split_scratch_list(scratch_list, mypath, names_file, values_file):
+    namesdf=scratch_list[['parameter']]    
+    valuesdf=scratch_list[['value']]
+    status_str = write_files(mypath, [namesdf, valuesdf], [names_file, values_file])
+    return status_str
