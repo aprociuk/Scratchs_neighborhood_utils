@@ -1,6 +1,51 @@
 import os
+import re
 from datetime import datetime
 from _000_system_include.global_functions import global_parameters
+
+def build_source_tables(mypath, myfiles):
+    all_files_exist, status_str = file_exists(mypath, myfiles)
+    if all_files_exist:
+        # Build prop list
+        weaved_prop, status_str2 = weave_scratch_list(myfiles[0], myfiles[1])
+        status_str += status_str2
+        
+        # Build sprite list
+        weaved_sprite, status_str2 = weave_scratch_list(myfiles[2], myfiles[3])
+        status_str += status_str2
+        
+        # Create table with sprite_id, keyword and value columns
+        weaved_sprite['sprite_id']=weaved_sprite['parameter'].str.partition("-")[0]
+        weaved_sprite['keyword']=weaved_sprite['parameter'].str.partition("-")[1]
+        sprite_and_uber = weaved_sprite[['sprite_id','keyword','value']]
+        print("\nsprite_and_uber:")
+        print(sprite_and_uber)
+        
+        # Split into uber sprite and plain sprite tables
+        uber_sprite_list=(
+            sprite_and_uber[ sprite_and_uber['sprite_id'].str.contains(r"^u[0-9]+", na=False) ]
+            .rename(columns = {'sprite_id':'uber_id'})
+        )
+        print("\nuber_sprite_list:")
+        print(uber_sprite_list)
+        plain_sprite_list=sprite_and_uber[ 
+            sprite_and_uber['sprite_id'].str.contains(r"^[0-9]+", na=False) 
+        ]
+        print("\nplain_sprite_list:")
+        print(plain_sprite_list)
+        
+        # Split uber sprite table into sprite_id and other parameters
+
+        # Create uber - sprite look up (uber_id, sprite_id)
+        
+        # Split plain sprite table into sprite costume and 
+        # sprite other parameters tables
+        
+        # Create sprite - prop look up (wide costume format)
+
+        # Create sprite ranges crosswalk (wide - min, max) for 
+        # landmark 0 alternate props
+
 
 def file_exists(mypath, myfiles):
     all_files_exist = True
