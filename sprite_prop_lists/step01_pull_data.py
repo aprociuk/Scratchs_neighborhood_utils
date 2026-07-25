@@ -59,14 +59,45 @@ def build_sprite_tables(mypath, myfiles):
         
         # Create uber - sprite - layer look up (uber_id, layer, sprite_order, sprite_id)
         uber_xwalk = pd.merge(uber_layers, uber_sprite_ids, how='inner', on=['uber_id'], sort=False)
+        print("\nuber_xwalk:")
+        print(uber_sprite_ids)
+
+        # Save uber_xwalk to parquet and sqlite
         
-        # Split plain sprite table into sprite costume and 
-        # sprite other parameters tables
-        
-        # Create sprite - prop look up (wide costume format)
+        # Split plain sprite table into:
+        #   1. sprite first/last costume table 
+        #   2. sprite alternate costume table
+        #   3. sprite other parameters tables
+        sprite_first_costume = (
+            plain_sprite_list[ 
+                plain_sprite_list['keyword'].str.contains(r"^first.*costume$", na=False) 
+            ]
+            .drop(columns='keyword')
+            .rename(columns={'value':'first_costume'})
+        )
+        print("\nsprite_first_costume:")
+        print(sprite_first_costume)
+
+        sprite_last_costume = (
+            plain_sprite_list[ 
+                plain_sprite_list['keyword'].str.contains(r"^last.*costume$", na=False) 
+            ]
+            .drop(columns='keyword')
+            .rename(columns={'value':'last_costume'})
+        )
+        print("\nsprite_last_costume:")
+        print(sprite_last_costume)
+
+        # Create sprite - prop look ups (wide costume format)
+        sprite_costumes_main = pd.merge(sprite_first_costume, sprite_last_costume, how='inner', on=['sprite_id'], sort=False)
+
+        # Save sprite_costumes_main to parquet/sql
+
 
         # Create sprite ranges crosswalk (wide - min, max) for 
-        # landmark 0 alternate props
+        # landmark 0/1 alternate props.  For landmark 1, the the
+        # single position will bestored as a min and max value to 
+        # make relation matching code more fluid.  
 
 
 def file_exists(mypath, myfiles):
