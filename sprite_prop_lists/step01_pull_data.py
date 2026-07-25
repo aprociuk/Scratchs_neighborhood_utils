@@ -1,17 +1,22 @@
 import os
-import re
+import pandas as pd
 from datetime import datetime
 from _000_system_include.global_functions import global_parameters
 
-def build_source_tables(mypath, myfiles):
+
+def build_prop_tables(mypath, myfiles):
     all_files_exist, status_str = file_exists(mypath, myfiles)
     if all_files_exist:
         # Build prop list
         weaved_prop, status_str2 = weave_scratch_list(myfiles[0], myfiles[1])
         status_str += status_str2
-        
+
+
+def build_sprite_tables(mypath, myfiles):
+    all_files_exist, status_str = file_exists(mypath, myfiles)
+    if all_files_exist:
         # Build sprite list
-        weaved_sprite, status_str2 = weave_scratch_list(myfiles[2], myfiles[3])
+        weaved_sprite, status_str2 = weave_scratch_list(myfiles[0], myfiles[1])
         status_str += status_str2
         
         # Create table with sprite_id, keyword and value columns
@@ -34,9 +39,26 @@ def build_source_tables(mypath, myfiles):
         print("\nplain_sprite_list:")
         print(plain_sprite_list)
         
-        # Split uber sprite table into sprite_id and other parameters
-
-        # Create uber - sprite look up (uber_id, sprite_id)
+        # Split uber sprite table into sprite_order/sprite_id and layer tables
+        uber_layers=(
+            uber_sprite_list[ uber_sprite_list['keyword'].str.contains("layer", na=False) ]
+            .drop(columns='keyword')
+            .rename(columns={'value':'layer'})
+        )
+        print("\nuber_layers:")
+        print(uber_layers)
+        
+        uber_sprite_ids=(
+            uber_sprite_list[ uber_sprite_list['keyword'].str.contains("sprite_id_", na=False) ]
+            .rename(columns={'value':'sprite_id'})
+        )
+        uber_sprite_ids['sprite_order'] = uber_sprite_ids['keyword'].str.partition("sprite_id_")[0]
+        uber_sprite_ids = uber_sprite_ids.drop(columns='keyword')
+        print("\nuber_sprite_ids:")
+        print(uber_sprite_ids)
+        
+        # Create uber - sprite - layer look up (uber_id, layer, sprite_order, sprite_id)
+        uber_xwalk = pd.merge(uber_layers, uber_sprite_ids, how='inner', on=['uber_id'], sort=False)
         
         # Split plain sprite table into sprite costume and 
         # sprite other parameters tables
