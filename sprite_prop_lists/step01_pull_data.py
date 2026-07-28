@@ -40,11 +40,7 @@ def build_sprite_tables(mypath, myfiles):
         print(plain_sprite_list)
         
         # Split uber sprite table into sprite_order/sprite_id and layer tables
-        uber_layers=(
-            uber_sprite_list[ uber_sprite_list['keyword'].str.contains("layer", na=False) ]
-            .drop(columns='keyword')
-            .rename(columns={'value':'layer'})
-        )
+        uber_layers = reshape_to_wide(uber_sprite_list, 'layer', 'layer')
         print("\nuber_layers:")
         print(uber_layers)
         
@@ -68,23 +64,11 @@ def build_sprite_tables(mypath, myfiles):
         #   1. sprite first/last costume table 
         #   2. sprite alternate costume table
         #   3. sprite other parameters tables
-        sprite_first_costume = (
-            plain_sprite_list[ 
-                plain_sprite_list['keyword'].str.contains(r"^first.*costume$", na=False) 
-            ]
-            .drop(columns='keyword')
-            .rename(columns={'value':'first_costume'})
-        )
+        sprite_first_costume = reshape_to_wide(plain_sprite_list, r"^first.*costume$", 'first_costume')
         print("\nsprite_first_costume:")
         print(sprite_first_costume)
 
-        sprite_last_costume = (
-            plain_sprite_list[ 
-                plain_sprite_list['keyword'].str.contains(r"^last.*costume$", na=False) 
-            ]
-            .drop(columns='keyword')
-            .rename(columns={'value':'last_costume'})
-        )
+        sprite_last_costume = reshape_to_wide(plain_sprite_list, r"^last.*costume$", 'last_costume')
         print("\nsprite_last_costume:")
         print(sprite_last_costume)
 
@@ -98,6 +82,17 @@ def build_sprite_tables(mypath, myfiles):
         # landmark 0/1 alternate props.  For landmark 1, the the
         # single position will bestored as a min and max value to 
         # make relation matching code more fluid.  
+
+
+def reshape_to_wide(indf, search_for, rename_to, regex=True):
+    outdf = (
+        indf[ 
+            indf['keyword'].str.contains(search_for, na=False, regex=regex) 
+        ]
+        .drop(columns='keyword')
+        .rename(columns={'value':rename_to})
+    )
+    return outdf
 
 
 def file_exists(mypath, myfiles):
