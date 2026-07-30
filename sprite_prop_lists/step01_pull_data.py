@@ -44,12 +44,9 @@ def build_sprite_tables(mypath, myfiles):
         print("\nuber_layers:")
         print(uber_layers)
         
-        uber_sprite_ids=(
-            uber_sprite_list[ uber_sprite_list['keyword'].str.contains("sprite_id_", na=False) ]
-            .rename(columns={'value':'sprite_id'})
+        uber_sprite_ids = reshape_to_wide(
+            uber_sprite_list, "sprite_id_", 'sprite_id', rename_keyword='sprite_order'
         )
-        uber_sprite_ids['sprite_order'] = uber_sprite_ids['keyword'].str.partition("sprite_id_")[0]
-        uber_sprite_ids = uber_sprite_ids.drop(columns='keyword')
         print("\nuber_sprite_ids:")
         print(uber_sprite_ids)
         
@@ -84,14 +81,15 @@ def build_sprite_tables(mypath, myfiles):
         # make relation matching code more fluid.  
 
 
-def reshape_to_wide(indf, search_for, rename_to, regex=True):
+def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True):
     outdf = (
-        indf[ 
-            indf['keyword'].str.contains(search_for, na=False, regex=regex) 
-        ]
-        .drop(columns='keyword')
+        indf[ indf['keyword'].str.contains(search_for, na=False, regex=regex) ]
         .rename(columns={'value':rename_to})
     )
+    if rename_keyword != None:
+        outdf[rename_keyword] = outdf['keyword'].str.partition(search_for)[0]
+    outdf = outdf.drop(columns='keyword')
+    
     return outdf
 
 
