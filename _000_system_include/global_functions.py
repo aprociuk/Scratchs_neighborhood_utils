@@ -16,7 +16,7 @@ def write_sql_parquet(df, base_name, params):
     # Note: if the database did not exist, then this
     #       command would create it.
     conn = sqlite3.connect(
-        os.path.join(params['sqlite3_dbs'],'weather.db')
+        os.path.join(params['sqlite3_dbs'],'scratchs_neighborhood.db')
     )
     
     # Write the DataFrame to a SQL table named 'my_table'
