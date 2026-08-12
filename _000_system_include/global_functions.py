@@ -11,6 +11,33 @@ import matplotlib.pyplot as plt
 import os
 
 
+def write_sql_parquet(df, base_name, params):
+    # Connect to the SQLite database
+    # Note: if the database did not exist, then this
+    #       command would create it.
+    conn = sqlite3.connect(
+        os.path.join(params['sqlite3_dbs'],'weather.db')
+    )
+    
+    # Write the DataFrame to a SQL table named 'my_table'
+    # if_exists='replace' drops the table if it exists and creates a new one
+    # index=False prevents writing the DataFrame index as a separate column
+    df.to_sql(base_name, conn, if_exists='replace', index=False)
+    
+    # Close the connection
+    conn.close()
+    
+    # Create path for parquet output file
+    outfile_parquet=os.path.join(
+        params['data_path'],
+        f'{base_name}.parquet'
+    )
+    
+    # Write to Parquet file
+    # Compression is often enabled by default or can be specified (e.g., 'snappy', 'gzip')
+    df.to_parquet(outfile_parquet, index=False)
+
+
 def print_all(prt_obj):
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         print(prt_obj)
