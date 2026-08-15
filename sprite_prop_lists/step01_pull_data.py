@@ -8,7 +8,10 @@ def build_prop_tables(mypath, myfiles):
     all_files_exist, status_str = file_exists(mypath, myfiles)
     if all_files_exist:
         # Build prop list
-        weaved_prop, status_str2 = weave_scratch_list(myfiles[0], myfiles[1])
+        weaved_prop, status_str2 = weave_scratch_list(
+            os.path.join(mypath,myfiles[0]), 
+            os.path.join(mypath,myfiles[1])
+        )
         status_str += status_str2
 
 
@@ -16,69 +19,75 @@ def build_sprite_tables(mypath, myfiles):
     all_files_exist, status_str = file_exists(mypath, myfiles)
     if all_files_exist:
         # Build sprite list
-        weaved_sprite, status_str2 = weave_scratch_list(myfiles[0], myfiles[1])
+        weaved_sprite, status_str2 = weave_scratch_list(
+            os.path.join(mypath,myfiles[0]), 
+            os.path.join(mypath,myfiles[1])
+        )
         status_str += status_str2
+        print(status_str)
+        print(weaved_sprite)
         
-        # Create table with sprite_id, keyword and value columns
-        weaved_sprite['sprite_id']=weaved_sprite['parameter'].str.partition("-")[0]
-        weaved_sprite['keyword']=weaved_sprite['parameter'].str.partition("-")[1]
-        sprite_and_uber = weaved_sprite[['sprite_id','keyword','value']]
-        print("\nsprite_and_uber:")
-        print(sprite_and_uber)
+        if not weaved_sprite.empty:
+            # Create table with sprite_id, keyword and value columns
+            weaved_sprite['sprite_id']=weaved_sprite['parameter'].str.partition("-")[0]
+            weaved_sprite['keyword']=weaved_sprite['parameter'].str.partition("-")[1]
+            sprite_and_uber = weaved_sprite[['sprite_id','keyword','value']]
+            print("\nsprite_and_uber:")
+            print(sprite_and_uber)
+            
+            # Split into uber sprite and plain sprite tables
+            uber_sprite_list=(
+                sprite_and_uber[ sprite_and_uber['sprite_id'].str.contains(r"^u[0-9]+", na=False) ]
+                .rename(columns = {'sprite_id':'uber_id'})
+            )
+            print("\nuber_sprite_list:")
+            print(uber_sprite_list)
+            plain_sprite_list=sprite_and_uber[ 
+                sprite_and_uber['sprite_id'].str.contains(r"^[0-9]+", na=False) 
+            ]
+            print("\nplain_sprite_list:")
+            print(plain_sprite_list)
+            
+            # Split uber sprite table into sprite_order/sprite_id and layer tables
+            uber_layers = reshape_to_wide(uber_sprite_list, 'layer', 'layer')
+            print("\nuber_layers:")
+            print(uber_layers)
         
-        # Split into uber sprite and plain sprite tables
-        uber_sprite_list=(
-            sprite_and_uber[ sprite_and_uber['sprite_id'].str.contains(r"^u[0-9]+", na=False) ]
-            .rename(columns = {'sprite_id':'uber_id'})
-        )
-        print("\nuber_sprite_list:")
-        print(uber_sprite_list)
-        plain_sprite_list=sprite_and_uber[ 
-            sprite_and_uber['sprite_id'].str.contains(r"^[0-9]+", na=False) 
-        ]
-        print("\nplain_sprite_list:")
-        print(plain_sprite_list)
-        
-        # Split uber sprite table into sprite_order/sprite_id and layer tables
-        uber_layers = reshape_to_wide(uber_sprite_list, 'layer', 'layer')
-        print("\nuber_layers:")
-        print(uber_layers)
-        
-        uber_sprite_ids = reshape_to_wide(
-            uber_sprite_list, "sprite_id_", 'sprite_id', rename_keyword='sprite_order'
-        )
-        print("\nuber_sprite_ids:")
-        print(uber_sprite_ids)
-        
-        # Create uber - sprite - layer look up (uber_id, layer, sprite_order, sprite_id)
-        uber_xwalk = pd.merge(uber_layers, uber_sprite_ids, how='inner', on=['uber_id'], sort=False)
-        print("\nuber_xwalk:")
-        print(uber_sprite_ids)
+            uber_sprite_ids = reshape_to_wide(
+                uber_sprite_list, "sprite_id_", 'sprite_id', rename_keyword='sprite_order'
+            )
+            print("\nuber_sprite_ids:")
+            print(uber_sprite_ids)
+            
+            # Create uber - sprite - layer look up (uber_id, layer, sprite_order, sprite_id)
+            uber_xwalk = pd.merge(uber_layers, uber_sprite_ids, how='inner', on=['uber_id'], sort=False)
+            print("\nuber_xwalk:")
+            print(uber_sprite_ids)
 
-        # Save uber_xwalk to parquet and sqlite
-        
-        # Split plain sprite table into:
-        #   1. sprite first/last costume table 
-        #   2. sprite alternate costume table
-        #   3. sprite other parameters tables
-        sprite_first_costume = reshape_to_wide(plain_sprite_list, r"^first.*costume$", 'first_costume')
-        print("\nsprite_first_costume:")
-        print(sprite_first_costume)
+            # Save uber_xwalk to parquet and sqlite
+            
+            # Split plain sprite table into:
+            #   1. sprite first/last costume table 
+            #   2. sprite alternate costume table
+            #   3. sprite other parameters tables
+            sprite_first_costume = reshape_to_wide(plain_sprite_list, r"^first.*costume$", 'first_costume')
+            print("\nsprite_first_costume:")
+            print(sprite_first_costume)
 
-        sprite_last_costume = reshape_to_wide(plain_sprite_list, r"^last.*costume$", 'last_costume')
-        print("\nsprite_last_costume:")
-        print(sprite_last_costume)
+            sprite_last_costume = reshape_to_wide(plain_sprite_list, r"^last.*costume$", 'last_costume')
+            print("\nsprite_last_costume:")
+            print(sprite_last_costume)
 
-        # Create sprite - prop look ups (wide costume format)
-        sprite_costumes_main = pd.merge(sprite_first_costume, sprite_last_costume, how='inner', on=['sprite_id'], sort=False)
+            # Create sprite - prop look ups (wide costume format)
+            sprite_costumes_main = pd.merge(sprite_first_costume, sprite_last_costume, how='inner', on=['sprite_id'], sort=False)
 
-        # Save sprite_costumes_main to parquet/sql
+            # Save sprite_costumes_main to parquet/sql
 
 
-        # Create sprite ranges crosswalk (wide - min, max) for 
-        # landmark 0/1 alternate props.  For landmark 1, the the
-        # single position will bestored as a min and max value to 
-        # make relation matching code more fluid.  
+            # Create sprite ranges crosswalk (wide - min, max) for 
+            # landmark 0/1 alternate props.  For landmark 1, the the
+            # single position will bestored as a min and max value to 
+            # make relation matching code more fluid.  
 
 
 def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True):
