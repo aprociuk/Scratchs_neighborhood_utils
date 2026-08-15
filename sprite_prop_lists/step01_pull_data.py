@@ -30,7 +30,7 @@ def build_sprite_tables(mypath, myfiles):
         if not weaved_sprite.empty:
             # Create table with sprite_id, keyword and value columns
             weaved_sprite['sprite_id']=weaved_sprite['parameter'].str.partition("-")[0]
-            weaved_sprite['keyword']=weaved_sprite['parameter'].str.partition("-")[1]
+            weaved_sprite['keyword']=weaved_sprite['parameter'].str.partition("-")[2]
             sprite_and_uber = weaved_sprite[['sprite_id','keyword','value']]
             print("\nsprite_and_uber:")
             print(sprite_and_uber)
@@ -95,6 +95,8 @@ def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True
         indf[ indf['keyword'].str.contains(search_for, na=False, regex=regex) ]
         .rename(columns={'value':rename_to})
     )
+    print("\n\noutddf:")
+    print(outdf)
     if rename_keyword != None:
         outdf[rename_keyword] = outdf['keyword'].str.partition(search_for)[0]
     outdf = outdf.drop(columns='keyword')
@@ -144,10 +146,10 @@ def load_save_path(path=None):
 def weave_scratch_list(names_file, values_file):
     status_str = "\n"
 
-    namesdf=pd.read_csv(names_file, names=['parameter'])
+    namesdf=pd.read_csv(names_file, skip_blank_lines=False, header=None, names=['parameter'])
     status_str += f"\nLoaded file:\n --{names_file} ({namesdf.size} records)"
     
-    valuesdf=pd.read_csv(values_file, names=['value'])
+    valuesdf=pd.read_csv(values_file, skip_blank_lines=False, header=None, names=['value'])
     status_str += f"\nLoaded file:\n --{values_file} ({valuesdf.size} records)"
     
     if namesdf.size == valuesdf.size:
