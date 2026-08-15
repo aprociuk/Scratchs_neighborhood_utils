@@ -56,13 +56,14 @@ def build_sprite_tables(mypath, myfiles):
             uber_sprite_ids = reshape_to_wide(
                 uber_sprite_list, "sprite_id_", 'sprite_id', rename_keyword='sprite_order'
             )
+            uber_sprite_ids = uber_sprite_ids[["uber_id", "sprite_order", "sprite_id"]]
             print("\nuber_sprite_ids:")
             print(uber_sprite_ids)
             
             # Create uber - sprite - layer look up (uber_id, layer, sprite_order, sprite_id)
             uber_xwalk = pd.merge(uber_layers, uber_sprite_ids, how='inner', on=['uber_id'], sort=False)
             print("\nuber_xwalk:")
-            print(uber_sprite_ids)
+            print(uber_xwalk)
 
             # Save uber_xwalk to parquet and sqlite
             
@@ -80,6 +81,8 @@ def build_sprite_tables(mypath, myfiles):
 
             # Create sprite - prop look ups (wide costume format)
             sprite_costumes_main = pd.merge(sprite_first_costume, sprite_last_costume, how='inner', on=['sprite_id'], sort=False)
+            print("\nsprite_costumes_main:")
+            print(sprite_costumes_main)
 
             # Save sprite_costumes_main to parquet/sql
 
@@ -95,10 +98,10 @@ def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True
         indf[ indf['keyword'].str.contains(search_for, na=False, regex=regex) ]
         .rename(columns={'value':rename_to})
     )
-    print("\n\noutddf:")
-    print(outdf)
+    #print("\n\noutddf:")
+    #print(outdf)
     if rename_keyword != None:
-        outdf[rename_keyword] = outdf['keyword'].str.partition(search_for)[0]
+        outdf[rename_keyword] = outdf['keyword'].str.partition(search_for)[2]
     outdf = outdf.drop(columns='keyword')
     
     return outdf
