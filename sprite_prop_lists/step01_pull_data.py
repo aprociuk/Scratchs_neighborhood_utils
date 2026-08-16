@@ -86,6 +86,7 @@ def build_sprite_tables(mypath, myfiles, gparams):
             print(sprite_costumes_main)
 
             # Save sprite_costumes_main to parquet/sql
+            write_sql_parquet(sprite_costumes_main, "sprite_costumes_main", gparams)
 
 
             # Create sprite ranges crosswalk (wide - min, max) for 
