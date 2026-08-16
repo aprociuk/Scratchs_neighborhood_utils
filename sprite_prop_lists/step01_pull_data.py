@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from datetime import datetime
-from _000_system_include.global_functions import global_parameters
+from _000_system_include.global_functions import global_parameters, write_sql_parquet
 
 
 def build_prop_tables(mypath, myfiles):
@@ -15,7 +15,7 @@ def build_prop_tables(mypath, myfiles):
         status_str += status_str2
 
 
-def build_sprite_tables(mypath, myfiles):
+def build_sprite_tables(mypath, myfiles, gparams):
     all_files_exist, status_str = file_exists(mypath, myfiles)
     if all_files_exist:
         # Build sprite list
@@ -66,6 +66,7 @@ def build_sprite_tables(mypath, myfiles):
             print(uber_xwalk)
 
             # Save uber_xwalk to parquet and sqlite
+            write_sql_parquet(uber_xwalk, "uber_xwalk", gparams)
             
             # Split plain sprite table into:
             #   1. sprite first/last costume table 
