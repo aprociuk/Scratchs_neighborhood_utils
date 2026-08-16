@@ -94,6 +94,9 @@ def build_sprite_tables(mypath, myfiles, gparams):
             # single position will bestored as a min and max value to 
             # make relation matching code more fluid.  
 
+            
+        return status_str, uber_xwalk, sprite_costumes_main
+
 
 def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True):
     outdf = (
