@@ -37,14 +37,18 @@ def build_sprite_tables(mypath, myfiles, gparams):
             
             # Split into uber sprite and plain sprite tables
             uber_sprite_list=(
-                sprite_and_uber[ sprite_and_uber['sprite_id'].str.contains(r"^u[0-9]+", na=False) ]
+                sprite_and_uber[ sprite_and_uber['sprite_id'].str.contains(r"^u[0-9]+$", na=False) ]
                 .rename(columns = {'sprite_id':'uber_id'})
             )
             print("\nuber_sprite_list:")
             print(uber_sprite_list)
+            
             plain_sprite_list=sprite_and_uber[ 
-                sprite_and_uber['sprite_id'].str.contains(r"^[0-9]+", na=False) 
+                sprite_and_uber['sprite_id'].str.contains(r"^[0-9]+$", na=False) 
             ]
+            # recast sprite_id as integer
+            plain_sprite_list['sprite_id'] = pd.to_numeric(plain_sprite_list['sprite_id'], errors='coerce').astype('Int64')
+            
             print("\nplain_sprite_list:")
             print(plain_sprite_list)
             
@@ -64,6 +68,11 @@ def build_sprite_tables(mypath, myfiles, gparams):
             uber_xwalk = pd.merge(uber_layers, uber_sprite_ids, how='inner', on=['uber_id'], sort=False)
             print("\nuber_xwalk:")
             print(uber_xwalk)
+            
+            # recast layer, sprite_order, sprite_id as integers
+            uber_xwalk['layer'] = pd.to_numeric(uber_xwalk['layer'], errors='coerce').astype('Int64')
+            uber_xwalk['sprite_order'] = pd.to_numeric(uber_xwalk['sprite_order'], errors='coerce').astype('Int64')
+            uber_xwalk['sprite_id'] = pd.to_numeric(uber_xwalk['sprite_id'], errors='coerce').astype('Int64')
 
             # Save uber_xwalk to parquet and sqlite
             write_sql_parquet(uber_xwalk, "uber_xwalk", gparams)
@@ -84,6 +93,18 @@ def build_sprite_tables(mypath, myfiles, gparams):
             sprite_costumes_main = pd.merge(sprite_first_costume, sprite_last_costume, how='inner', on=['sprite_id'], sort=False)
             print("\nsprite_costumes_main:")
             print(sprite_costumes_main)
+            sprite_costumes_main.info()
+            
+            # recast first and last costume into integers 
+            # will need to be integers to properly sql merge to prop list data
+            sprite_costumes_main['first_costume'] = (
+                pd.to_numeric(sprite_costumes_main['first_costume'], errors='coerce')
+                  .astype('Int64')
+            )
+            sprite_costumes_main['last_costume'] = (
+                pd.to_numeric(sprite_costumes_main['last_costume'], errors='coerce')
+                  .astype('Int64')
+            )
 
             # Save sprite_costumes_main to parquet/sql
             write_sql_parquet(sprite_costumes_main, "sprite_costumes_main", gparams)
