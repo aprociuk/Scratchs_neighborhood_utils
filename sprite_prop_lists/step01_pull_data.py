@@ -114,6 +114,16 @@ def build_sprite_tables(mypath, myfiles, gparams):
             # landmark 0/1 alternate props.  For landmark 1, the the
             # single position will bestored as a min and max value to 
             # make relation matching code more fluid.  
+            landmark = reshape_to_wide(plain_sprite_list, "landmark_sprite", 'landmark_sprite')
+            print("\nlandmark:")
+            print(landmark)
+
+            bup_xmin = reshape_to_wide(
+                plain_sprite_list, "xmin_bup", 'xmin', rename_keyword='backup_index'
+            )
+            #bup_xmin = bup_xmin[["uber_id", "sprite_order", "sprite_id"]]
+            print("\nbup_xmin:")
+            print(bup_xmin)
 
             
         return status_str, uber_xwalk, sprite_costumes_main
