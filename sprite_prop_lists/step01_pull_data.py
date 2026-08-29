@@ -120,10 +120,27 @@ def build_sprite_tables(mypath, myfiles, gparams):
 
             bup_xmin = reshape_to_wide(
                 plain_sprite_list, "xmin_bup", 'xmin', rename_keyword='backup_index'
-            )
-            #bup_xmin = bup_xmin[["uber_id", "sprite_order", "sprite_id"]]
+            )[['sprite_id','backup_index','xmin']]
             print("\nbup_xmin:")
             print(bup_xmin)
+
+            bup_xmax = reshape_to_wide(
+                plain_sprite_list, "xmax_bup", 'xmax', rename_keyword='backup_index'
+            )[['sprite_id','backup_index','xmax']]
+            print("\nbup_xmax:")
+            print(bup_xmax)
+
+            lm1_xmin = reshape_to_wide(
+                plain_sprite_list, r"^x_bup", 'xmin', rename_keyword='backup_index'
+            )[['sprite_id','backup_index','xmin']]
+            print("\nlm1_xmin:")
+            print(lm1_xmin)
+
+            lm1_xmax = reshape_to_wide(
+                plain_sprite_list, r"^x_bup", 'xmax', rename_keyword='backup_index'
+            )[['sprite_id','backup_index','xmax']]
+            print("\nlm1_xmax:")
+            print(lm1_xmax)
 
             
         return status_str, uber_xwalk, sprite_costumes_main
@@ -137,7 +154,7 @@ def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True
     #print("\n\noutddf:")
     #print(outdf)
     if rename_keyword != None:
-        outdf[rename_keyword] = outdf['keyword'].str.partition(search_for)[2]
+        outdf[rename_keyword] = outdf['keyword'].str.split(search_for, expand=True, regex=regex)[1]
     outdf = outdf.drop(columns='keyword')
     
     return outdf
