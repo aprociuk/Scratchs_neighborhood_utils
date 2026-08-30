@@ -149,6 +149,15 @@ def build_sprite_tables(mypath, myfiles, gparams):
             print("\nbup_xmax:")
             print(bup_xmax)
 
+            # Merge landmark 0 xmin and xmax data
+            lm0_xmin_xmax = pd.merge(
+                bup_xmin, bup_xmax,
+                on=['sprite_id','backup_index'],
+                how='inner'
+            )
+            print("\nlm0_xmin_xmax:")
+            print(lm0_xmin_xmax)
+
             lm1_xmin = reshape_to_wide(
                 plain_sprite_list, r"^x_bup", 'xmin', rename_keyword='backup_index'
             )[['sprite_id','backup_index','xmin']]
