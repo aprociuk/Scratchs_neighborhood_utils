@@ -42,6 +42,9 @@ def build_sprite_tables(mypath, myfiles, gparams):
             )
             print("\nuber_sprite_list:")
             print(uber_sprite_list)
+
+            # Save uber_sprite_list to parquet/sql
+            write_sql_parquet(uber_sprite_list, "uber_sprite_list", gparams)
             
             plain_sprite_list=sprite_and_uber[ 
                 sprite_and_uber['sprite_id'].str.contains(r"^[0-9]+$", na=False) 
@@ -51,6 +54,9 @@ def build_sprite_tables(mypath, myfiles, gparams):
             
             print("\nplain_sprite_list:")
             print(plain_sprite_list)
+
+            # Save plain_sprite_list to parquet/sql
+            write_sql_parquet(plain_sprite_list, "plain_sprite_list", gparams)
             
             # Split uber sprite table into sprite_order/sprite_id and layer tables
             uber_layers = reshape_to_wide(uber_sprite_list, 'layer', 'layer')
