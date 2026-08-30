@@ -124,6 +124,12 @@ def build_sprite_tables(mypath, myfiles, gparams):
             print("\nlandmark:")
             print(landmark)
 
+            bup_prop = reshape_to_wide(
+                plain_sprite_list, "prop_bup", 'prop_id', rename_keyword='backup_index'
+            )[['sprite_id','backup_index','prop_id']]
+            print("\nbup_prop:")
+            print(bup_prop)
+
             bup_xmin = reshape_to_wide(
                 plain_sprite_list, "xmin_bup", 'xmin', rename_keyword='backup_index'
             )[['sprite_id','backup_index','xmin']]
