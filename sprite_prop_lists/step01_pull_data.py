@@ -130,6 +130,13 @@ def build_sprite_tables(mypath, myfiles, gparams):
             print("\nbup_prop:")
             print(bup_prop)
 
+            # Start landmarks_xwalk: Merge landmark to bup_prop
+            landmarks_xwalk = pd.merge(
+                landmark, bup_prop,
+                on='sprite_id',
+                how='inner'
+            )
+
             bup_xmin = reshape_to_wide(
                 plain_sprite_list, "xmin_bup", 'xmin', rename_keyword='backup_index'
             )[['sprite_id','backup_index','xmin']]
@@ -153,9 +160,19 @@ def build_sprite_tables(mypath, myfiles, gparams):
             )[['sprite_id','backup_index','xmax']]
             print("\nlm1_xmax:")
             print(lm1_xmax)
+            
+            print("\nlandmarks_xwalk:")
+            print(landmarks_xwalk)
 
             
-        return status_str, uber_xwalk, sprite_costumes_main
+        return (
+            status_str, 
+            uber_sprite_list, 
+            plain_sprite_list, 
+            uber_xwalk, 
+            sprite_costumes_main,
+            landmarks_xwalk
+        )
 
 
 def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True):
