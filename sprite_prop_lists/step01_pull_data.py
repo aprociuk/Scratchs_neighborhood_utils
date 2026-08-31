@@ -169,9 +169,66 @@ def build_sprite_tables(mypath, myfiles, gparams):
             )[['sprite_id','backup_index','xmax']]
             print("\nlm1_xmax:")
             print(lm1_xmax)
+
+            # Merge landmark 1 xmin and xmax data
+            lm1_xmin_xmax = pd.merge(
+                lm1_xmin, lm1_xmax,
+                on=['sprite_id','backup_index'],
+                how='inner'
+            )
+            print("\nlm1_xmin_xmax:")
+            print(lm1_xmin_xmax)
+
+            # Get smin_bup, xmax_bup portion 
+            # (should be landmark 0, but may not be if there are 
+            # unused parameters from landmark 1)
+            lm0 = pd.merge(
+                landmarks_xwalk, lm0_xmin_xmax,
+                on=['sprite_id','backup_index'],
+                how='inner'
+            )
+            print("\nlm0:")
+            print(lm0)
+
+            # Get s_bup portion 
+            # (should be landmark 1, but may not be if there are 
+            # unused parameters from landmark 0)
+            lm1 = pd.merge(
+                landmarks_xwalk, lm1_xmin_xmax,
+                on=['sprite_id','backup_index'],
+                how='inner'
+            )
+            print("\nlm1:")
+            print(lm1)
             
+            # Stack lm0 and lm1 for complete crosswalk
+            landmarks_xwalk = pd.concat([lm0, lm1])
+            
+            # Recast appropriate parameters to numeric
+            landmarks_xwalk['landmark_sprite'] = (
+                pd.to_numeric(landmarks_xwalk['landmark_sprite'], errors='coerce')
+                  .astype('Int64')
+            )
+            landmarks_xwalk['backup_index'] = (
+                pd.to_numeric(landmarks_xwalk['backup_index'], errors='coerce')
+                  .astype('Int64')
+            )
+            landmarks_xwalk['prop_id'] = (
+                pd.to_numeric(landmarks_xwalk['prop_id'], errors='coerce')
+                  .astype('Int64')
+            )
+            landmarks_xwalk['xmin'] = (
+                pd.to_numeric(landmarks_xwalk['xmin'], errors='coerce')
+            )
+            landmarks_xwalk['xmax'] = (
+                pd.to_numeric(landmarks_xwalk['xmax'], errors='coerce')
+            )
+            
+            # Print and save landmarks_xwalk
             print("\nlandmarks_xwalk:")
             print(landmarks_xwalk)
+            landmarks_xwalk.info()
+            write_sql_parquet(landmarks_xwalk, "landmarks_xwalk", gparams)
 
             
         return (
