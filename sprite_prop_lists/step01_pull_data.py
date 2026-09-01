@@ -255,6 +255,25 @@ def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True
     return outdf
 
 
+def sprite_out(uber_sprite_list, plain_sprite_list, mypath, myfiles):
+    uber_list['names'] = uber_sprite_list['uber_id'] + '-' + uber_sprite_list['keyword']
+    uber_list['values'] = uber_sprite_list['value']
+    uber_list[['names']].to_csv(
+        path_or_buf=os.path.join(mypath,myfiles[0]), 
+        header=False, 
+        index=False
+    )
+    status_str = f"\nGenerated {os.path.join(mypath,myfiles[0])}"
+    uber_list[['names']].to_csv(
+        path_or_buf=os.path.join(mypath,myfiles[1]), 
+        header=False, 
+        index=False
+    )
+    status_str += f"\nGenerated {os.path.join(mypath,myfiles[1])}"
+    
+    return status_str
+
+
 def file_exists(mypath, myfiles):
     all_files_exist = True
     status_str = f"\n\nChecking location: {mypath}"
