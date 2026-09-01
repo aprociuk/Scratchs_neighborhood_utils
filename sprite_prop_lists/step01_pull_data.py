@@ -258,13 +258,19 @@ def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True
 def sprite_out(uber_sprite_list, plain_sprite_list, mypath, myfiles):
     uber_list['names'] = uber_sprite_list['uber_id'] + '-' + uber_sprite_list['keyword']
     uber_list['values'] = uber_sprite_list['value']
-    uber_list[['names']].to_csv(
+    
+    plain_list['names'] = plain_sprite_list['sprite_id'].astype(str) + '-' + plain_sprite_list['keyword']
+    plain_list['values'] = plain_sprite_list['value']
+    
+    all_sprites_list = pd.concat([uber_list,plain_list])
+    
+    all_sprites_list[['names']].to_csv(
         path_or_buf=os.path.join(mypath,myfiles[0]), 
         header=False, 
         index=False
     )
     status_str = f"\nGenerated {os.path.join(mypath,myfiles[0])}"
-    uber_list[['names']].to_csv(
+    all_sprites_list[['names']].to_csv(
         path_or_buf=os.path.join(mypath,myfiles[1]), 
         header=False, 
         index=False
