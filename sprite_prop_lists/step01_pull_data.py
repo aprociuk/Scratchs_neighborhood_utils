@@ -263,18 +263,12 @@ def sprite_out(uber_sprite_list, plain_sprite_list, mypath, myfiles):
     plain_list['values'] = plain_sprite_list['value']
     
     all_sprites_list = pd.concat([uber_list,plain_list])
+    mydfs[0] = all_sprites_list[['names']]
+    mydfs[1] = all_sprites_list[['values']]
     
-    all_sprites_list[['names']].to_csv(
-        path_or_buf=os.path.join(mypath,myfiles[0]), 
-        header=False, 
-        index=False
-    )
+    write_files(mypath, mydfs, myfiles)
+    
     status_str = f"\nGenerated {os.path.join(mypath,myfiles[0])}"
-    all_sprites_list[['names']].to_csv(
-        path_or_buf=os.path.join(mypath,myfiles[1]), 
-        header=False, 
-        index=False
-    )
     status_str += f"\nGenerated {os.path.join(mypath,myfiles[1])}"
     
     return status_str
