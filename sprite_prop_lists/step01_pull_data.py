@@ -24,8 +24,7 @@ def build_sprite_tables(mypath, myfiles, gparams):
             os.path.join(mypath,myfiles[1])
         )
         status_str += status_str2
-        print(status_str)
-        print(weaved_sprite)
+        # print(weaved_sprite)
         
         if not weaved_sprite.empty:
             # Create table with sprite_id, keyword and value columns
@@ -229,16 +228,30 @@ def build_sprite_tables(mypath, myfiles, gparams):
             print(landmarks_xwalk)
             landmarks_xwalk.info()
             write_sql_parquet(landmarks_xwalk, "landmarks_xwalk", gparams)
-
+        else:
+            uber_sprite_list = pd.DataFrame()
+            plain_sprite_list = pd.DataFrame()
+            uber_xwalk = pd.DataFrame()
+            sprite_costumes_main = pd.DataFrame()
+            landmarks_xwalk = pd.DataFrame()
+            status_str += "\nERROR: Unable to load sprite data."
+    else:
+        uber_sprite_list = pd.DataFrame()
+        plain_sprite_list = pd.DataFrame()
+        uber_xwalk = pd.DataFrame()
+        sprite_costumes_main = pd.DataFrame()
+        landmarks_xwalk = pd.DataFrame()
+        status_str += "\nERROR: Unable to load files."
             
-        return (
+    print(status_str)
+    return (
             status_str, 
             uber_sprite_list, 
             plain_sprite_list, 
             uber_xwalk, 
             sprite_costumes_main,
             landmarks_xwalk
-        )
+    )
 
 
 def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True):
@@ -256,21 +269,26 @@ def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True
 
 
 def sprite_out(uber_sprite_list, plain_sprite_list, mypath, myfiles):
-    uber_list['names'] = uber_sprite_list['uber_id'] + '-' + uber_sprite_list['keyword']
-    uber_list['values'] = uber_sprite_list['value']
+    if uber_sprite_list.empty or plain_sprite_list.empty:
+        status_str = "\nERROR: unable to convert sprite data to files."
+    else:
+        uber_list = pd.DataFrame()
+        uber_list['names'] = uber_sprite_list['uber_id'] + '-' + uber_sprite_list['keyword']
+        uber_list['values'] = uber_sprite_list['value']
+        
+        plain_list = pd.DataFrame()
+        plain_list['names'] = plain_sprite_list['sprite_id'].astype(str) + '-' + plain_sprite_list['keyword']
+        plain_list['values'] = plain_sprite_list['value']
+        
+        all_sprites_list = pd.concat([uber_list,plain_list])
+        mydfs = [
+                  all_sprites_list[['names']],
+                  all_sprites_list[['values']]
+                ]
+        
+        status_str = write_files(mypath, mydfs, myfiles)
     
-    plain_list['names'] = plain_sprite_list['sprite_id'].astype(str) + '-' + plain_sprite_list['keyword']
-    plain_list['values'] = plain_sprite_list['value']
-    
-    all_sprites_list = pd.concat([uber_list,plain_list])
-    mydfs[0] = all_sprites_list[['names']]
-    mydfs[1] = all_sprites_list[['values']]
-    
-    write_files(mypath, mydfs, myfiles)
-    
-    status_str = f"\nGenerated {os.path.join(mypath,myfiles[0])}"
-    status_str += f"\nGenerated {os.path.join(mypath,myfiles[1])}"
-    
+    print(status_str)
     return status_str
 
 
@@ -347,7 +365,7 @@ def archive_files(mypath, myfiles):
     
     if one_file_exists:
         arch_path = os.path.join(mypath, mysubfldr)
-        os.path.mkdirs(arch_path)
+        os.makedirs(arch_path, exist_ok=True)
     
     for myfile in myfiles:
         if os.path.isfile(os.path.join(mypath, myfile)):
@@ -362,7 +380,7 @@ def archive_files(mypath, myfiles):
 
 def write_files(mypath, mydfs, myfiles):
     status_str = archive_files(mypath, myfiles)
-    if len(mydfs) == lent(myfiles):
+    if len(mydfs) == len(myfiles):
         for n in len(mydfs):
             mydfs[n].to_csv(
                 path_or_buf=os.path.join(mypath, myfiles[n]), 
