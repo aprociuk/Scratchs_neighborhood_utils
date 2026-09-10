@@ -381,7 +381,7 @@ def archive_files(mypath, myfiles):
 def write_files(mypath, mydfs, myfiles):
     status_str = archive_files(mypath, myfiles)
     if len(mydfs) == len(myfiles):
-        for n in len(mydfs):
+        for n in range( len(mydfs) ):
             mydfs[n].to_csv(
                 path_or_buf=os.path.join(mypath, myfiles[n]), 
                 header=False, 
