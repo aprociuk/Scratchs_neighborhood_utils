@@ -387,6 +387,15 @@ def write_files(mypath, mydfs, myfiles):
                 header=False, 
                 index=False
             )
+            # Read the file back, remove the empty quotes, and save it again
+            with open(os.path.join(mypath, myfiles[n]), "r", encoding="utf-8") as f:
+                content = f.read()
+            
+            # Replace empty double quotes with nothing
+            content = content.replace('""', "")
+            
+            with open(os.path.join(mypath, myfiles[n]), "w", encoding="utf-8") as f:
+                f.write(content)            
             status_str += f"\nWrote {myfiles[n]}"
     else:
         status_str += f"\nINTERNAL ERROR: Number of lists ({len(mydfs[n])}) and number of files ({len(myfiles[n])}) differ.  No files written."
