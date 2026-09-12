@@ -4,7 +4,7 @@ from datetime import datetime
 from _000_system_include.global_functions import global_parameters, write_sql_parquet
 
 
-def build_prop_tables(mypath, myfiles):
+def build_prop_tables(mypath, myfiles, gparams):
     all_files_exist, status_str = file_exists(mypath, myfiles)
     if all_files_exist:
         # Build prop list
@@ -23,6 +23,31 @@ def build_prop_tables(mypath, myfiles):
             all_props = weaved_prop[['prop_id','keyword','value']]
             print("\nall_props:")
             print(all_props)
+            
+            # Pull out numbered (plain) props
+            plain_prop_list=all_props[ 
+                all_props['prop_id'].str.contains(r"^[0-9]+$", na=False) 
+            ]
+            # recast prop_id as integer
+            plain_prop_list['prop_id'] = pd.to_numeric(plain_prop_list['prop_id'], errors='coerce').astype('Int64')
+            
+            print("\nplain_prop_list:")
+            print(plain_prop_list)
+
+            # Save plain_prop_list to parquet/sql
+            write_sql_parquet(plain_prop_list, "plain_prop_list", gparams)
+        else:
+            plain_prop_list = pd.DataFrame()
+            status_str += "\nERROR: Unable to load prop data."
+    else:
+        plain_prop_list = pd.DataFrame()
+        status_str += "\nERROR: Unable to load prop files."
+            
+    print(status_str)
+    return (
+            status_str, 
+            plain_prop_list 
+    )
 
 
 def build_sprite_tables(mypath, myfiles, gparams):
@@ -251,7 +276,7 @@ def build_sprite_tables(mypath, myfiles, gparams):
         uber_xwalk = pd.DataFrame()
         sprite_costumes_main = pd.DataFrame()
         landmarks_xwalk = pd.DataFrame()
-        status_str += "\nERROR: Unable to load files."
+        status_str += "\nERROR: Unable to load sprite files."
             
     print(status_str)
     return (
