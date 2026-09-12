@@ -13,6 +13,16 @@ def build_prop_tables(mypath, myfiles):
             os.path.join(mypath,myfiles[1])
         )
         status_str += status_str2
+        print("\nweaved_prop:")
+        print(weaved_prop)
+        
+        if not weaved_prop.empty:
+            # Create table with prop_id, keyword and value columns
+            weaved_prop['prop_id']=weaved_prop['parameter'].str.partition("-")[0]
+            weaved_prop['keyword']=weaved_prop['parameter'].str.partition("-")[2]
+            all_props = weaved_prop[['prop_id','keyword','value']]
+            print("\nall_props:")
+            print(all_props)
 
 
 def build_sprite_tables(mypath, myfiles, gparams):
