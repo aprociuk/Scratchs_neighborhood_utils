@@ -43,6 +43,10 @@ def create_sprite_prop_roadmap(params):
     sprite_prop_roadmap = pd.read_sql_query(
             "select * from sprite_prop_roadmap", conn
     )
+    sprite_prop_roadmap.to_parquet(
+        os.path.join(params['data_path'],'sprite_prop_roadmap.parquet'), 
+        index=False
+    )
     status_str = "\nSprite-prop roadmap reproduced."
     return status_str, sprite_prop_roadmap
     
