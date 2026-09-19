@@ -29,7 +29,7 @@ def pull_2col_list(mypath, myfiles, gparams):
             header=None, 
             names=['parameter', 'value']
         )
-        status_str = f"\nFile {myfiles[2]} already exists.  Loaded weaved list from this file for user editing."
+        status_str = f"\nFile {myfiles[2]} already exists.  Loaded weaved list from this user edited file."
 
     num_cols = len(weaved_list.columns)
     if num_cols != 2:
@@ -80,17 +80,15 @@ def build_prop_tables(mypath, myfiles, gparams):
 
 
 def build_sprite_tables(mypath, myfiles, gparams):
-    all_files_exist, status_str = file_exists(mypath, myfiles)
+    all_files_exist, status_str = file_exists(mypath, myfiles[0:2])
     if all_files_exist:
         # Build sprite list
-        weaved_sprite, status_str2 = weave_scratch_list(
-            os.path.join(mypath,myfiles[0]), 
-            os.path.join(mypath,myfiles[1])
-        )
+        weaved_sprite, status_str2, num_cols = pull_2col_list(mypath, myfiles, gparams)
         status_str += status_str2
-        # print(weaved_sprite)
+        print("\nweaved_sprite:")
+        print(weaved_sprite)
         
-        if not weaved_sprite.empty:
+        if not weaved_sprite.empty and num_cols == 2:
             # Create table with sprite_id, keyword and value columns
             weaved_sprite['sprite_id']=weaved_sprite['parameter'].str.partition("-")[0]
             weaved_sprite['keyword']=weaved_sprite['parameter'].str.partition("-")[2]
