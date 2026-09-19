@@ -5,21 +5,31 @@ from _000_system_include.global_functions import global_parameters, write_sql_pa
 
 
 def pull_2col_list(mypath, myfiles, gparams):
-    num_files = len(myfiles)
+    list_file_exists = (
+        os.path.isfile(
+            os.path.join(mypath,myfiles[2])
+        )
+    )
     # Build prop list
-    if num_files == 2:
+    if not list_file_exists:
         weaved_list, status_str = weave_scratch_list(
             os.path.join(mypath,myfiles[0]), 
             os.path.join(mypath,myfiles[1])
         )
+        weaved_list.to_csv(
+            path_or_buf=os.path.join(mypath, myfiles[2]), 
+            header=False, 
+            index=False
+        )
+        status_str += f"\nGenerated {myfiles[2]} for user editing."
     else:
         weaved_list=pd.read_csv(
-            os.path.join(mypath,myfiles[0]), 
+            os.path.join(mypath,myfiles[2]), 
             # skip_blank_lines=False, 
             header=None, 
             names=['parameter', 'value']
         )
-        status_str = f"\nLOADED LIST FILE SUCCESSFULLY IMPORTED"
+        status_str = f"\nFile {myfiles[2]} already exists.  Loaded weaved list from this file for user editing."
 
     num_cols = len(weaved_list.columns)
     if num_cols != 2:
@@ -28,9 +38,9 @@ def pull_2col_list(mypath, myfiles, gparams):
 
 
 def build_prop_tables(mypath, myfiles, gparams):
-    all_files_exist, status_str = file_exists(mypath, myfiles)
+    all_files_exist, status_str = file_exists(mypath, myfiles[0:2])
     if all_files_exist:
-        weaved_list, status_str2, num_cols = pull_2col_list(mypath, myfiles, gparams)
+        weaved_prop, status_str2, num_cols = pull_2col_list(mypath, myfiles, gparams)
         status_str += status_str2
         print("\nweaved_prop:")
         print(weaved_prop)
