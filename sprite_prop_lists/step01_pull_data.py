@@ -4,19 +4,38 @@ from datetime import datetime
 from _000_system_include.global_functions import global_parameters, write_sql_parquet
 
 
-def build_prop_tables(mypath, myfiles, gparams):
-    all_files_exist, status_str = file_exists(mypath, myfiles)
-    if all_files_exist:
-        # Build prop list
-        weaved_prop, status_str2 = weave_scratch_list(
+def pull_2col_list(mypath, myfiles, gparams):
+    num_files = len(myfiles)
+    # Build prop list
+    if num_files == 2:
+        weaved_list, status_str = weave_scratch_list(
             os.path.join(mypath,myfiles[0]), 
             os.path.join(mypath,myfiles[1])
         )
+    else:
+        weaved_list=pd.read_csv(
+            os.path.join(mypath,myfiles[0]), 
+            # skip_blank_lines=False, 
+            header=None, 
+            names=['parameter', 'value']
+        )
+        status_str = f"\nLOADED LIST FILE SUCCESSFULLY IMPORTED"
+
+    num_cols = len(weaved_list.columns)
+    if num_cols != 2:
+        status_str += f"\nERROR: sprite/prop list contains {num_cols} columns."
+    return weaved_list, status_str, num_cols
+
+
+def build_prop_tables(mypath, myfiles, gparams):
+    all_files_exist, status_str = file_exists(mypath, myfiles)
+    if all_files_exist:
+        weaved_list, status_str2, num_cols = pull_2col_list(mypath, myfiles, gparams)
         status_str += status_str2
         print("\nweaved_prop:")
         print(weaved_prop)
         
-        if not weaved_prop.empty:
+        if not weaved_prop.empty and num_cols == 2:
             # Create table with prop_id, keyword and value columns
             weaved_prop['prop_id']=weaved_prop['parameter'].str.partition("-")[0]
             weaved_prop['keyword']=weaved_prop['parameter'].str.partition("-")[2]
