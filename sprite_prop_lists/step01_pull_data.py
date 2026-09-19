@@ -343,12 +343,18 @@ def sprite_out(uber_sprite_list, plain_sprite_list, mypath, myfiles):
         plain_list['values'] = plain_sprite_list['value']
         
         all_sprites_list = pd.concat([uber_list,plain_list])
-        mydfs = [
-                  all_sprites_list[['names']],
-                  all_sprites_list[['values']]
-                ]
-        
-        status_str = write_files(mypath, mydfs, myfiles)
+        all_sprites_list.to_csv(
+            path_or_buf=os.path.join(mypath, myfiles[2]), 
+            header=False, 
+            index=False
+        )
+        status_str = f"\nUpdated user edited file: {myfiles[2]}"
+        #mydfs = [
+        #          all_sprites_list[['names']],
+        #          all_sprites_list[['values']]
+        #        ]
+        #
+        #status_str = write_files(mypath, mydfs, myfiles)
     
     print(status_str)
     return status_str
