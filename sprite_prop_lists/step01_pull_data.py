@@ -471,8 +471,24 @@ def write_files(mypath, mydfs, myfiles):
     return status_str
 
 
-def split_scratch_list(scratch_list, mypath, names_file, values_file):
-    namesdf=scratch_list[['parameter']]    
-    valuesdf=scratch_list[['value']]
-    status_str = write_files(mypath, [namesdf, valuesdf], [names_file, values_file])
+def split_2col_list(mypath, myfiles, gparams):
+    list_path = os.path.join(mypath,myfiles[2])
+    if os.path.isfile(list_path):
+        scratch_list=pd.read_csv(
+            list_path, 
+            # skip_blank_lines=False, 
+            header=None, 
+            names=['parameter', 'value']
+        )
+        status_str = f"\nFile {myfiles[2]} loaded."
+        
+        namesdf=scratch_list[['parameter']]    
+        valuesdf=scratch_list[['value']]
+        status_str += write_files(mypath, [namesdf, valuesdf], myfiles[0:2])
+        
+        os.remove(list_path)
+        status_str += f"\nFile {myfiles[2]} deleted successfully."
+    else:
+        status_str = f"\nFile {myfiles[2]} does not exist."
+    
     return status_str
