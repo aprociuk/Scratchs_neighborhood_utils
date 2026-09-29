@@ -1,3 +1,23 @@
+# ignore everything
+*
+# allow python code files and notebooks
+!*.ipynb
+!*.py
+# allow .sh files
+!*.sh
+# allow markdown files
+!*.md
+# allow .git files
+!\.git*
+# allow subdirectory recursion
+!*/
+# prevent old or archive directories from being tracked even if they contain the right program types shown above
+# we will update this if it becomes apparent more junk/unnecessary-to-version directories are being used
+# **/?[Aa]rchive/
+# **/[Aa]rchive/
+# **/?[Oo]ld/
+# **/[Oo]ld/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -216,28 +236,3 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-
-# Output logs:
-*.log
-*.lst
-
-# Tabular data
-*.json
-*.csv
-*.xls
-*.xlsx
-*.xml
-*.parquet
-*.feather
-*.db
-
-# Graphics
-*.png
-*.jpg
-*.bmp
-
-# General binary, executable, disk image
-.DS_Store
-*.exe
-*.dmg
-*.sh
