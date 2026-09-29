@@ -349,12 +349,6 @@ def sprite_out(uber_sprite_list, plain_sprite_list, mypath, myfiles):
             index=False
         )
         status_str = f"\nUpdated user edited file: {myfiles[2]}"
-        #mydfs = [
-        #          all_sprites_list[['names']],
-        #          all_sprites_list[['values']]
-        #        ]
-        #
-        #status_str = write_files(mypath, mydfs, myfiles)
     
     print(status_str)
     return status_str
@@ -418,13 +412,14 @@ def weave_scratch_list(names_file, values_file):
     return weaved_df, status_str
 
 
-def archive_files(mypath, myfiles):
+def archive_files(mypath, myfiles, mysubfldr=None):
     status_str = "\n"
     
-    # Get current date and time
-    now = datetime.now()
-    # Format as a readable string (e.g., "2026-07-11 12:35:00")
-    mysubfldr = now.strftime("%Y%m%d_%Hh%Mm%Ss")
+    if mysubfldr == None:
+        # Get current date and time
+        now = datetime.now()
+        # Format as a readable string (e.g., "2026-07-11 12:35:00")
+        mysubfldr = now.strftime("%Y%m%d_%Hh%Mm%Ss")
     
     # Determine if at least one of the files exists (for archiving purposes)
     one_file_exists = False
@@ -443,11 +438,11 @@ def archive_files(mypath, myfiles):
             )
             status_str += f"\nFound file {myfile}: archived to subfolder {mysubfldr}"
     
-    return status_str
+    return status_str, mysubfldr
 
 
-def write_files(mypath, mydfs, myfiles):
-    status_str = archive_files(mypath, myfiles)
+def write_files(mypath, mydfs, myfiles, mysubfldr=None):
+    status_str, mysubfldr = archive_files(mypath, myfiles, mysubfldr)
     if len(mydfs) == len(myfiles):
         for n in range( len(mydfs) ):
             mydfs[n].to_csv(
@@ -468,10 +463,10 @@ def write_files(mypath, mydfs, myfiles):
     else:
         status_str += f"\nINTERNAL ERROR: Number of lists ({len(mydfs[n])}) and number of files ({len(myfiles[n])}) differ.  No files written."
         
-    return status_str
+    return status_str, mysubfldr
 
 
-def split_2col_list(mypath, myfiles, gparams):
+def split_2col_list(mypath, myfiles, gparams, mysubfldr=None):
     list_path = os.path.join(mypath,myfiles[2])
     if os.path.isfile(list_path):
         scratch_list=pd.read_csv(
@@ -484,11 +479,12 @@ def split_2col_list(mypath, myfiles, gparams):
         
         namesdf=scratch_list[['parameter']]    
         valuesdf=scratch_list[['value']]
-        status_str += write_files(mypath, [namesdf, valuesdf], myfiles[0:2])
+        status_str2, mysubfldr = write_files(mypath, [namesdf, valuesdf], myfiles[0:2], mysubfldr)
+        status_str += status_str2
         
         os.remove(list_path)
         status_str += f"\nFile {myfiles[2]} deleted successfully."
     else:
         status_str = f"\nFile {myfiles[2]} does not exist."
     
-    return status_str
+    return status_str, mysubfldr
