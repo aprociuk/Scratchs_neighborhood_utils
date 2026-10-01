@@ -37,21 +37,23 @@ def pull_2col_list(mypath, myfiles, gparams):
     return weaved_list, status_str, num_cols
 
 
-def build_prop_tables(mypath, myfiles, gparams):
+def build_prop_tables(mypath, myfiles, gparams, printall = False):
     all_files_exist, status_str = file_exists(mypath, myfiles[0:2])
     if all_files_exist:
         weaved_prop, status_str2, num_cols = pull_2col_list(mypath, myfiles, gparams)
         status_str += status_str2
-        print("\nweaved_prop:")
-        print(weaved_prop)
+        if printall:
+            print("\nweaved_prop:")
+            print(weaved_prop)
         
         if not weaved_prop.empty and num_cols == 2:
             # Create table with prop_id, keyword and value columns
             weaved_prop['prop_id']=weaved_prop['parameter'].str.partition("-")[0]
             weaved_prop['keyword']=weaved_prop['parameter'].str.partition("-")[2]
             all_props = weaved_prop[['prop_id','keyword','value']]
-            print("\nall_props:")
-            print(all_props)
+            if printall:
+                print("\nall_props:")
+                print(all_props)
             
             # Pull out numbered (plain) props
             plain_prop_list=all_props[ 
@@ -60,8 +62,9 @@ def build_prop_tables(mypath, myfiles, gparams):
             # recast prop_id as integer
             plain_prop_list['prop_id'] = pd.to_numeric(plain_prop_list['prop_id'], errors='coerce').astype('Int64')
             
-            print("\nplain_prop_list:")
-            print(plain_prop_list)
+            if printall:
+                print("\nplain_prop_list:")
+                print(plain_prop_list)
 
             # Save plain_prop_list to parquet/sql
             write_sql_parquet(plain_prop_list, "plain_prop_list", gparams)
@@ -72,37 +75,39 @@ def build_prop_tables(mypath, myfiles, gparams):
         plain_prop_list = pd.DataFrame()
         status_str += "\nERROR: Unable to load prop files."
             
-    print(status_str)
     return (
             status_str, 
             plain_prop_list 
     )
 
 
-def build_sprite_tables(mypath, myfiles, gparams):
+def build_sprite_tables(mypath, myfiles, gparams, printall = False):
     all_files_exist, status_str = file_exists(mypath, myfiles[0:2])
     if all_files_exist:
         # Build sprite list
         weaved_sprite, status_str2, num_cols = pull_2col_list(mypath, myfiles, gparams)
         status_str += status_str2
-        print("\nweaved_sprite:")
-        print(weaved_sprite)
+        if printall:
+            print("\nweaved_sprite:")
+            print(weaved_sprite)
         
         if not weaved_sprite.empty and num_cols == 2:
             # Create table with sprite_id, keyword and value columns
             weaved_sprite['sprite_id']=weaved_sprite['parameter'].str.partition("-")[0]
             weaved_sprite['keyword']=weaved_sprite['parameter'].str.partition("-")[2]
             sprite_and_uber = weaved_sprite[['sprite_id','keyword','value']]
-            print("\nsprite_and_uber:")
-            print(sprite_and_uber)
+            if printall:
+                print("\nsprite_and_uber:")
+                print(sprite_and_uber)
             
             # Split into uber sprite and plain sprite tables
             uber_sprite_list=(
                 sprite_and_uber[ sprite_and_uber['sprite_id'].str.contains(r"^u[0-9]+$", na=False) ]
                 .rename(columns = {'sprite_id':'uber_id'})
             )
-            print("\nuber_sprite_list:")
-            print(uber_sprite_list)
+            if printall:
+                print("\nuber_sprite_list:")
+                print(uber_sprite_list)
 
             # Save uber_sprite_list to parquet/sql
             write_sql_parquet(uber_sprite_list, "uber_sprite_list", gparams)
@@ -113,28 +118,32 @@ def build_sprite_tables(mypath, myfiles, gparams):
             # recast sprite_id as integer
             plain_sprite_list['sprite_id'] = pd.to_numeric(plain_sprite_list['sprite_id'], errors='coerce').astype('Int64')
             
-            print("\nplain_sprite_list:")
-            print(plain_sprite_list)
+            if printall:
+                print("\nplain_sprite_list:")
+                print(plain_sprite_list)
 
             # Save plain_sprite_list to parquet/sql
             write_sql_parquet(plain_sprite_list, "plain_sprite_list", gparams)
             
             # Split uber sprite table into sprite_order/sprite_id and layer tables
             uber_layers = reshape_to_wide(uber_sprite_list, 'layer', 'layer')
-            print("\nuber_layers:")
-            print(uber_layers)
+            if printall:
+                print("\nuber_layers:")
+                print(uber_layers)
         
             uber_sprite_ids = reshape_to_wide(
                 uber_sprite_list, "sprite_id_", 'sprite_id', rename_keyword='sprite_order'
             )
             uber_sprite_ids = uber_sprite_ids[["uber_id", "sprite_order", "sprite_id"]]
-            print("\nuber_sprite_ids:")
-            print(uber_sprite_ids)
+            if printall:
+                print("\nuber_sprite_ids:")
+                print(uber_sprite_ids)
             
             # Create uber - sprite - layer look up (uber_id, layer, sprite_order, sprite_id)
             uber_xwalk = pd.merge(uber_layers, uber_sprite_ids, how='inner', on=['uber_id'], sort=False)
-            print("\nuber_xwalk:")
-            print(uber_xwalk)
+            if printall:
+                print("\nuber_xwalk:")
+                print(uber_xwalk)
             
             # recast layer, sprite_order, sprite_id as integers
             uber_xwalk['layer'] = pd.to_numeric(uber_xwalk['layer'], errors='coerce').astype('Int64')
@@ -149,18 +158,21 @@ def build_sprite_tables(mypath, myfiles, gparams):
             #   2. sprite alternate costume table
             #   3. sprite other parameters tables
             sprite_first_costume = reshape_to_wide(plain_sprite_list, r"^first.*costume$", 'first_costume')
-            print("\nsprite_first_costume:")
-            print(sprite_first_costume)
+            if printall:
+                print("\nsprite_first_costume:")
+                print(sprite_first_costume)
 
             sprite_last_costume = reshape_to_wide(plain_sprite_list, r"^last.*costume$", 'last_costume')
-            print("\nsprite_last_costume:")
-            print(sprite_last_costume)
+            if printall:
+                print("\nsprite_last_costume:")
+                print(sprite_last_costume)
 
             # Create sprite - prop look ups (wide costume format)
             sprite_costumes_main = pd.merge(sprite_first_costume, sprite_last_costume, how='inner', on=['sprite_id'], sort=False)
-            print("\nsprite_costumes_main:")
-            print(sprite_costumes_main)
-            sprite_costumes_main.info()
+            if printall:
+                print("\nsprite_costumes_main:")
+                print(sprite_costumes_main)
+                sprite_costumes_main.info()
             
             # recast first and last costume into integers 
             # will need to be integers to properly sql merge to prop list data
@@ -182,14 +194,16 @@ def build_sprite_tables(mypath, myfiles, gparams):
             # single position will bestored as a min and max value to 
             # make relation matching code more fluid.  
             landmark = reshape_to_wide(plain_sprite_list, "landmark_sprite", 'landmark_sprite')
-            print("\nlandmark:")
-            print(landmark)
+            if printall:
+                print("\nlandmark:")
+                print(landmark)
 
             bup_prop = reshape_to_wide(
                 plain_sprite_list, "prop_bup", 'prop_id', rename_keyword='backup_index'
             )[['sprite_id','backup_index','prop_id']]
-            print("\nbup_prop:")
-            print(bup_prop)
+            if printall:
+                print("\nbup_prop:")
+                print(bup_prop)
 
             # Start landmarks_xwalk: Merge landmark to bup_prop
             landmarks_xwalk = pd.merge(
@@ -201,14 +215,16 @@ def build_sprite_tables(mypath, myfiles, gparams):
             bup_xmin = reshape_to_wide(
                 plain_sprite_list, "xmin_bup", 'xmin', rename_keyword='backup_index'
             )[['sprite_id','backup_index','xmin']]
-            print("\nbup_xmin:")
-            print(bup_xmin)
+            if printall:
+                print("\nbup_xmin:")
+                print(bup_xmin)
 
             bup_xmax = reshape_to_wide(
                 plain_sprite_list, "xmax_bup", 'xmax', rename_keyword='backup_index'
             )[['sprite_id','backup_index','xmax']]
-            print("\nbup_xmax:")
-            print(bup_xmax)
+            if printall:
+                print("\nbup_xmax:")
+                print(bup_xmax)
 
             # Merge landmark 0 xmin and xmax data
             lm0_xmin_xmax = pd.merge(
@@ -216,20 +232,23 @@ def build_sprite_tables(mypath, myfiles, gparams):
                 on=['sprite_id','backup_index'],
                 how='inner'
             )
-            print("\nlm0_xmin_xmax:")
-            print(lm0_xmin_xmax)
+            if printall:
+                print("\nlm0_xmin_xmax:")
+                print(lm0_xmin_xmax)
 
             lm1_xmin = reshape_to_wide(
                 plain_sprite_list, r"^x_bup", 'xmin', rename_keyword='backup_index'
             )[['sprite_id','backup_index','xmin']]
-            print("\nlm1_xmin:")
-            print(lm1_xmin)
+            if printall:
+                print("\nlm1_xmin:")
+                print(lm1_xmin)
 
             lm1_xmax = reshape_to_wide(
                 plain_sprite_list, r"^x_bup", 'xmax', rename_keyword='backup_index'
             )[['sprite_id','backup_index','xmax']]
-            print("\nlm1_xmax:")
-            print(lm1_xmax)
+            if printall:
+                print("\nlm1_xmax:")
+                print(lm1_xmax)
 
             # Merge landmark 1 xmin and xmax data
             lm1_xmin_xmax = pd.merge(
@@ -237,8 +256,9 @@ def build_sprite_tables(mypath, myfiles, gparams):
                 on=['sprite_id','backup_index'],
                 how='inner'
             )
-            print("\nlm1_xmin_xmax:")
-            print(lm1_xmin_xmax)
+            if printall:
+                print("\nlm1_xmin_xmax:")
+                print(lm1_xmin_xmax)
 
             # Get smin_bup, xmax_bup portion 
             # (should be landmark 0, but may not be if there are 
@@ -248,8 +268,9 @@ def build_sprite_tables(mypath, myfiles, gparams):
                 on=['sprite_id','backup_index'],
                 how='inner'
             )
-            print("\nlm0:")
-            print(lm0)
+            if printall:
+                print("\nlm0:")
+                print(lm0)
 
             # Get s_bup portion 
             # (should be landmark 1, but may not be if there are 
@@ -259,8 +280,9 @@ def build_sprite_tables(mypath, myfiles, gparams):
                 on=['sprite_id','backup_index'],
                 how='inner'
             )
-            print("\nlm1:")
-            print(lm1)
+            if printall:
+                print("\nlm1:")
+                print(lm1)
             
             # Stack lm0 and lm1 for complete crosswalk
             landmarks_xwalk = pd.concat([lm0, lm1])
@@ -286,9 +308,10 @@ def build_sprite_tables(mypath, myfiles, gparams):
             )
             
             # Print and save landmarks_xwalk
-            print("\nlandmarks_xwalk:")
-            print(landmarks_xwalk)
-            landmarks_xwalk.info()
+            if printall:
+                print("\nlandmarks_xwalk:")
+                print(landmarks_xwalk)
+                landmarks_xwalk.info()
             write_sql_parquet(landmarks_xwalk, "landmarks_xwalk", gparams)
         else:
             uber_sprite_list = pd.DataFrame()
@@ -305,7 +328,6 @@ def build_sprite_tables(mypath, myfiles, gparams):
         landmarks_xwalk = pd.DataFrame()
         status_str += "\nERROR: Unable to load sprite files."
             
-    print(status_str)
     return (
             status_str, 
             uber_sprite_list, 
