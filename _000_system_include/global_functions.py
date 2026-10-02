@@ -1,5 +1,6 @@
 import pandas as pd
 import sqlite3
+from itables import show
 
 # for plotting example below
 import seaborn as sns
@@ -9,6 +10,24 @@ import matplotlib.pyplot as plt
 # os module used to interact woth operating system
 #    (e.g. change paths, environment variables, etc.)
 import os
+
+def showtbl(df, maxBytes="10MB", scrollable=True):
+    if scrollable:
+        show(
+            df, 
+            maxBytes=maxBytes, 
+            column_filters="header", 
+            scrollY="350px", 
+            scrollCollapse=True, 
+            paging=False
+        )
+    else:
+        show(
+            df, 
+            maxBytes=maxBytes, 
+            column_filters="header"
+        )
+
 
 
 def write_sql_parquet(df, base_name, params):
