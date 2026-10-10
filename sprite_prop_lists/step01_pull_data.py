@@ -33,7 +33,7 @@ def pull_2col_list(mypath, myfiles, gparams):
 
     num_cols = len(weaved_list.columns)
     if num_cols != 2:
-        status_str += f"\nERROR: sprite/prop list contains {num_cols} columns."
+        status_str += f"\nWARNING: sprite/prop list contains {num_cols} columns."
     return weaved_list, status_str, num_cols
 
 
@@ -70,10 +70,10 @@ def build_prop_tables(mypath, myfiles, gparams, printall = False):
             write_sql_parquet(plain_prop_list, "plain_prop_list", gparams)
         else:
             plain_prop_list = pd.DataFrame()
-            status_str += "\nERROR: Unable to load prop data."
+            status_str += "\nWARNING: Unable to load prop data."
     else:
         plain_prop_list = pd.DataFrame()
-        status_str += "\nERROR: Unable to load prop files."
+        status_str += "\nWARNING: Unable to load prop files."
             
     return (
             status_str, 
@@ -319,14 +319,14 @@ def build_sprite_tables(mypath, myfiles, gparams, printall = False):
             uber_xwalk = pd.DataFrame()
             sprite_costumes_main = pd.DataFrame()
             landmarks_xwalk = pd.DataFrame()
-            status_str += "\nERROR: Unable to load sprite data."
+            status_str += "\nWARNING: Unable to load sprite data."
     else:
         uber_sprite_list = pd.DataFrame()
         plain_sprite_list = pd.DataFrame()
         uber_xwalk = pd.DataFrame()
         sprite_costumes_main = pd.DataFrame()
         landmarks_xwalk = pd.DataFrame()
-        status_str += "\nERROR: Unable to load sprite files."
+        status_str += "\nWARNING: Unable to load sprite files."
             
     return (
             status_str, 
@@ -354,7 +354,7 @@ def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True
 
 def sprite_out(uber_sprite_list, plain_sprite_list, mypath, myfiles):
     if uber_sprite_list.empty or plain_sprite_list.empty:
-        status_str = "\nERROR: unable to convert sprite data to files."
+        status_str = "\nWARNING: unable to convert sprite data to files."
     else:
         uber_list = pd.DataFrame()
         uber_list['names'] = uber_sprite_list['uber_id'] + '-' + uber_sprite_list['keyword']
