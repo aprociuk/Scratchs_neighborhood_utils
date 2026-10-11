@@ -510,3 +510,20 @@ def split_2col_list(mypath, myfiles, gparams, mysubfldr=None):
         status_str = f"\nFile {myfiles[2]} does not exist."
     
     return status_str, mysubfldr
+
+
+def pull_editor_cmds(mypath, myfile, gparams):
+    file_path = os.path.join(mypath, myfile)
+    
+    open_prefix = '''open '''
+    close_prefix = '''osascript -e 'tell application "BBEdit" to close file "'''
+    
+    open_suffix = ''' -a /Applications/BBEdit.app'''
+    close_suffix = '''" saving yes' '''
+    
+    open_file_cmd = f"""{open_prefix}{file_path}{open_suffix}"""
+    close_file_cmd = f"""{close_prefix}{file_path}{close_suffix}"""
+    
+    return open_file_cmd, close_file_cmd
+
+
