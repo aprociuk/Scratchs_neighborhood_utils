@@ -1,4 +1,4 @@
-import os
+import os, sys
 import pandas as pd
 from datetime import datetime
 from _000_system_include.global_functions import global_parameters, write_sql_parquet
@@ -512,17 +512,16 @@ def split_2col_list(mypath, myfiles, gparams, mysubfldr=None):
     return status_str, mysubfldr
 
 
-def pull_editor_cmds(mypath, myfile, gparams):
+def pull_editor_cmds(app, mypath, myfile, gparams):
+    platform = sys.platform
     file_path = os.path.join(mypath, myfile)
     
-    open_prefix = '''open '''
-    close_prefix = '''osascript -e 'tell application "BBEdit" to close file "'''
-    
-    open_suffix = ''' -a /Applications/BBEdit.app'''
-    close_suffix = '''" saving yes' '''
-    
-    open_file_cmd = f"""{open_prefix}{file_path}{open_suffix}"""
-    close_file_cmd = f"""{close_prefix}{file_path}{close_suffix}"""
+    if platform == 'darwin':
+        open_file_cmd = f"""open {file_path} -a {app}"""
+        close_file_cmd = f"""osascript -e 'tell application "{app}" to close file "{file_path}" saving yes'"""
+    else:
+        open_file_cmd = None
+        close_file_cmd = None
     
     return open_file_cmd, close_file_cmd
 
