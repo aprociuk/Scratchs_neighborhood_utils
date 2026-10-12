@@ -11,12 +11,14 @@ import matplotlib.pyplot as plt
 #    (e.g. change paths, environment variables, etc.)
 import os
 
-def showtbl(df, maxBytes="10MB", scrollable=True):
+def showtbl(df, maxBytes="10MB", scrollable=True, stateSave=True,  table_id="my_unique_voila_table"):
     if scrollable:
         show(
             df, 
             maxBytes=maxBytes, 
             column_filters="header", 
+            stateSave=stateSave,
+            table_id=table_id,
             scrollY="350px", 
             scrollCollapse=True, 
             paging=False
@@ -25,7 +27,9 @@ def showtbl(df, maxBytes="10MB", scrollable=True):
         show(
             df, 
             maxBytes=maxBytes, 
-            column_filters="header"
+            column_filters="header",
+            stateSave=stateSave,
+            table_id=table_id
         )
 
 
