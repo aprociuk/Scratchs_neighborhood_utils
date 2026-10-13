@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, re
 import pandas as pd
 from datetime import datetime
 from _000_system_include.global_functions import global_parameters, write_sql_parquet
@@ -524,5 +524,21 @@ def pull_editor_cmds(app, mypath, myfile, gparams):
         close_file_cmd = None
     
     return open_file_cmd, close_file_cmd
+
+
+def pull_archives(path):
+    subfolders = [
+                    f.name 
+                    for f in os.scandir(path) 
+                    if f.is_dir() and 
+                       bool(
+                           re.search(
+                               r"^[0-9]{8}_[0-9]+h[0-9]+m[0-9]+s$", 
+                               f.name
+                           )
+                       )
+                 ]
+    return subfolders
+
 
 
