@@ -508,6 +508,9 @@ def split_2col_list(mypath, myfiles, gparams, mysubfldr=None):
         status_str += f"\nFile {myfiles[2]} deleted successfully."
     else:
         status_str = f"\nFile {myfiles[2]} does not exist."
+        status_str2, mysubfldr = archive_files(mypath, myfiles[0:2], mysubfldr)
+        status_str += status_str2
+
     
     return status_str, mysubfldr
 
