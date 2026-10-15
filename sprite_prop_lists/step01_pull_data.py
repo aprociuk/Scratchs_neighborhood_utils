@@ -124,195 +124,10 @@ def build_sprite_tables(mypath, myfiles, gparams, printall = False):
 
             # Save plain_sprite_list to parquet/sql
             write_sql_parquet(plain_sprite_list, "plain_sprite_list", gparams)
-            
-            # Split uber sprite table into sprite_order/sprite_id and layer tables
-            uber_layers = reshape_to_wide(uber_sprite_list, 'layer', 'layer')
-            if printall:
-                print("\nuber_layers:")
-                print(uber_layers)
-        
-            uber_sprite_ids = reshape_to_wide(
-                uber_sprite_list, "sprite_id_", 'sprite_id', rename_keyword='sprite_order'
-            )
-            uber_sprite_ids = uber_sprite_ids[["uber_id", "sprite_order", "sprite_id"]]
-            if printall:
-                print("\nuber_sprite_ids:")
-                print(uber_sprite_ids)
-            
-            # Create uber - sprite - layer look up (uber_id, layer, sprite_order, sprite_id)
-            uber_xwalk = pd.merge(uber_layers, uber_sprite_ids, how='inner', on=['uber_id'], sort=False)
-            if printall:
-                print("\nuber_xwalk:")
-                print(uber_xwalk)
-            
-            # recast layer, sprite_order, sprite_id as integers
-            uber_xwalk['layer'] = pd.to_numeric(uber_xwalk['layer'], errors='coerce').astype('Int64')
-            uber_xwalk['sprite_order'] = pd.to_numeric(uber_xwalk['sprite_order'], errors='coerce').astype('Int64')
-            uber_xwalk['sprite_id'] = pd.to_numeric(uber_xwalk['sprite_id'], errors='coerce').astype('Int64')
 
-            # Save uber_xwalk to parquet and sqlite
-            write_sql_parquet(uber_xwalk, "uber_xwalk", gparams)
-            
-            # Split plain sprite table into:
-            #   1. sprite first/last costume table 
-            #   2. sprite alternate costume table
-            #   3. sprite other parameters tables
-            sprite_first_costume = reshape_to_wide(plain_sprite_list, r"^first.*costume$", 'first_costume')
-            if printall:
-                print("\nsprite_first_costume:")
-                print(sprite_first_costume)
-
-            sprite_last_costume = reshape_to_wide(plain_sprite_list, r"^last.*costume$", 'last_costume')
-            if printall:
-                print("\nsprite_last_costume:")
-                print(sprite_last_costume)
-
-            # Create sprite - prop look ups (wide costume format)
-            sprite_costumes_main = pd.merge(sprite_first_costume, sprite_last_costume, how='inner', on=['sprite_id'], sort=False)
-            if printall:
-                print("\nsprite_costumes_main:")
-                print(sprite_costumes_main)
-                sprite_costumes_main.info()
-            
-            # recast first and last costume into integers 
-            # will need to be integers to properly sql merge to prop list data
-            sprite_costumes_main['first_costume'] = (
-                pd.to_numeric(sprite_costumes_main['first_costume'], errors='coerce')
-                  .astype('Int64')
-            )
-            sprite_costumes_main['last_costume'] = (
-                pd.to_numeric(sprite_costumes_main['last_costume'], errors='coerce')
-                  .astype('Int64')
-            )
-
-            # Save sprite_costumes_main to parquet/sql
-            write_sql_parquet(sprite_costumes_main, "sprite_costumes_main", gparams)
-
-
-            # Create sprite ranges crosswalk (wide - min, max) for 
-            # landmark 0/1 alternate props.  For landmark 1, the the
-            # single position will bestored as a min and max value to 
-            # make relation matching code more fluid.  
-            landmark = reshape_to_wide(plain_sprite_list, "landmark_sprite", 'landmark_sprite')
-            if printall:
-                print("\nlandmark:")
-                print(landmark)
-
-            bup_prop = reshape_to_wide(
-                plain_sprite_list, "prop_bup", 'prop_id', rename_keyword='backup_index'
-            )[['sprite_id','backup_index','prop_id']]
-            if printall:
-                print("\nbup_prop:")
-                print(bup_prop)
-
-            # Start landmarks_xwalk: Merge landmark to bup_prop
-            landmarks_xwalk = pd.merge(
-                landmark, bup_prop,
-                on='sprite_id',
-                how='inner'
-            )
-
-            bup_xmin = reshape_to_wide(
-                plain_sprite_list, "xmin_bup", 'xmin', rename_keyword='backup_index'
-            )[['sprite_id','backup_index','xmin']]
-            if printall:
-                print("\nbup_xmin:")
-                print(bup_xmin)
-
-            bup_xmax = reshape_to_wide(
-                plain_sprite_list, "xmax_bup", 'xmax', rename_keyword='backup_index'
-            )[['sprite_id','backup_index','xmax']]
-            if printall:
-                print("\nbup_xmax:")
-                print(bup_xmax)
-
-            # Merge landmark 0 xmin and xmax data
-            lm0_xmin_xmax = pd.merge(
-                bup_xmin, bup_xmax,
-                on=['sprite_id','backup_index'],
-                how='inner'
-            )
-            if printall:
-                print("\nlm0_xmin_xmax:")
-                print(lm0_xmin_xmax)
-
-            lm1_xmin = reshape_to_wide(
-                plain_sprite_list, r"^x_bup", 'xmin', rename_keyword='backup_index'
-            )[['sprite_id','backup_index','xmin']]
-            if printall:
-                print("\nlm1_xmin:")
-                print(lm1_xmin)
-
-            lm1_xmax = reshape_to_wide(
-                plain_sprite_list, r"^x_bup", 'xmax', rename_keyword='backup_index'
-            )[['sprite_id','backup_index','xmax']]
-            if printall:
-                print("\nlm1_xmax:")
-                print(lm1_xmax)
-
-            # Merge landmark 1 xmin and xmax data
-            lm1_xmin_xmax = pd.merge(
-                lm1_xmin, lm1_xmax,
-                on=['sprite_id','backup_index'],
-                how='inner'
-            )
-            if printall:
-                print("\nlm1_xmin_xmax:")
-                print(lm1_xmin_xmax)
-
-            # Get smin_bup, xmax_bup portion 
-            # (should be landmark 0, but may not be if there are 
-            # unused parameters from landmark 1)
-            lm0 = pd.merge(
-                landmarks_xwalk, lm0_xmin_xmax,
-                on=['sprite_id','backup_index'],
-                how='inner'
-            )
-            if printall:
-                print("\nlm0:")
-                print(lm0)
-
-            # Get s_bup portion 
-            # (should be landmark 1, but may not be if there are 
-            # unused parameters from landmark 0)
-            lm1 = pd.merge(
-                landmarks_xwalk, lm1_xmin_xmax,
-                on=['sprite_id','backup_index'],
-                how='inner'
-            )
-            if printall:
-                print("\nlm1:")
-                print(lm1)
-            
-            # Stack lm0 and lm1 for complete crosswalk
-            landmarks_xwalk = pd.concat([lm0, lm1])
-            
-            # Recast appropriate parameters to numeric
-            landmarks_xwalk['landmark_sprite'] = (
-                pd.to_numeric(landmarks_xwalk['landmark_sprite'], errors='coerce')
-                  .astype('Int64')
-            )
-            landmarks_xwalk['backup_index'] = (
-                pd.to_numeric(landmarks_xwalk['backup_index'], errors='coerce')
-                  .astype('Int64')
-            )
-            landmarks_xwalk['prop_id'] = (
-                pd.to_numeric(landmarks_xwalk['prop_id'], errors='coerce')
-                  .astype('Int64')
-            )
-            landmarks_xwalk['xmin'] = (
-                pd.to_numeric(landmarks_xwalk['xmin'], errors='coerce')
-            )
-            landmarks_xwalk['xmax'] = (
-                pd.to_numeric(landmarks_xwalk['xmax'], errors='coerce')
-            )
-            
-            # Print and save landmarks_xwalk
-            if printall:
-                print("\nlandmarks_xwalk:")
-                print(landmarks_xwalk)
-                landmarks_xwalk.info()
-            write_sql_parquet(landmarks_xwalk, "landmarks_xwalk", gparams)
+            uber_xwalk = build_uber_xwalk(uber_sprite_list, gparams, printall)
+            sprite_costumes_main = build_sprite_costumes_main(plain_sprite_list, gparams, printall)
+            landmarks_xwalk = build_landmarks_xwalk(plain_sprite_list, gparams, printall)
         else:
             uber_sprite_list = pd.DataFrame()
             plain_sprite_list = pd.DataFrame()
@@ -336,6 +151,204 @@ def build_sprite_tables(mypath, myfiles, gparams, printall = False):
             sprite_costumes_main,
             landmarks_xwalk
     )
+
+
+def build_uber_xwalk(uber_sprite_list, gparams, printall=False):
+    # Split uber sprite table into sprite_order/sprite_id and layer tables
+    uber_layers = reshape_to_wide(uber_sprite_list, 'layer', 'layer')
+    if printall:
+        print("\nuber_layers:")
+        print(uber_layers)
+    
+    uber_sprite_ids = reshape_to_wide(
+        uber_sprite_list, "sprite_id_", 'sprite_id', rename_keyword='sprite_order'
+    )
+    uber_sprite_ids = uber_sprite_ids[["uber_id", "sprite_order", "sprite_id"]]
+    if printall:
+        print("\nuber_sprite_ids:")
+        print(uber_sprite_ids)
+    
+    # Create uber - sprite - layer look up (uber_id, layer, sprite_order, sprite_id)
+    uber_xwalk = pd.merge(uber_layers, uber_sprite_ids, how='inner', on=['uber_id'], sort=False)
+    if printall:
+        print("\nuber_xwalk:")
+        print(uber_xwalk)
+    
+    # recast layer, sprite_order, sprite_id as integers
+    uber_xwalk['layer'] = pd.to_numeric(uber_xwalk['layer'], errors='coerce').astype('Int64')
+    uber_xwalk['sprite_order'] = pd.to_numeric(uber_xwalk['sprite_order'], errors='coerce').astype('Int64')
+    uber_xwalk['sprite_id'] = pd.to_numeric(uber_xwalk['sprite_id'], errors='coerce').astype('Int64')
+
+    # Save uber_xwalk to parquet and sqlite
+    write_sql_parquet(uber_xwalk, "uber_xwalk", gparams)
+    return uber_xwalk
+
+
+def build_sprite_costumes_main(plain_sprite_list, gparams, printall=False):
+    # Split plain sprite table into:
+    #   1. sprite first/last costume table 
+    #   2. sprite alternate costume table
+    #   3. sprite other parameters tables
+    sprite_first_costume = reshape_to_wide(plain_sprite_list, r"^first.*costume$", 'first_costume')
+    if printall:
+        print("\nsprite_first_costume:")
+        print(sprite_first_costume)
+
+    sprite_last_costume = reshape_to_wide(plain_sprite_list, r"^last.*costume$", 'last_costume')
+    if printall:
+        print("\nsprite_last_costume:")
+        print(sprite_last_costume)
+
+    # Create sprite - prop look ups (wide costume format)
+    sprite_costumes_main = pd.merge(sprite_first_costume, sprite_last_costume, how='inner', on=['sprite_id'], sort=False)
+    if printall:
+        print("\nsprite_costumes_main:")
+        print(sprite_costumes_main)
+        sprite_costumes_main.info()
+    
+    # recast first and last costume into integers 
+    # will need to be integers to properly sql merge to prop list data
+    sprite_costumes_main['first_costume'] = (
+        pd.to_numeric(sprite_costumes_main['first_costume'], errors='coerce')
+          .astype('Int64')
+    )
+    sprite_costumes_main['last_costume'] = (
+        pd.to_numeric(sprite_costumes_main['last_costume'], errors='coerce')
+          .astype('Int64')
+    )
+
+    # Save sprite_costumes_main to parquet/sql
+    write_sql_parquet(sprite_costumes_main, "sprite_costumes_main", gparams)
+    return sprite_costumes_main
+
+
+def build_landmarks_xwalk(plain_sprite_list, gparams, printall=False):
+    # Create sprite ranges crosswalk (wide - min, max) for 
+    # landmark 0/1 alternate props.  For landmark 1, the the
+    # single position will bestored as a min and max value to 
+    # make relation matching code more fluid.  
+    landmark = reshape_to_wide(plain_sprite_list, "landmark_sprite", 'landmark_sprite')
+    if printall:
+        print("\nlandmark:")
+        print(landmark)
+
+    bup_prop = reshape_to_wide(
+        plain_sprite_list, "prop_bup", 'prop_id', rename_keyword='backup_index'
+    )[['sprite_id','backup_index','prop_id']]
+    if printall:
+        print("\nbup_prop:")
+        print(bup_prop)
+
+    # Start landmarks_xwalk: Merge landmark to bup_prop
+    landmarks_xwalk = pd.merge(
+        landmark, bup_prop,
+        on='sprite_id',
+        how='inner'
+    )
+
+    bup_xmin = reshape_to_wide(
+        plain_sprite_list, "xmin_bup", 'xmin', rename_keyword='backup_index'
+    )[['sprite_id','backup_index','xmin']]
+    if printall:
+        print("\nbup_xmin:")
+        print(bup_xmin)
+
+    bup_xmax = reshape_to_wide(
+        plain_sprite_list, "xmax_bup", 'xmax', rename_keyword='backup_index'
+    )[['sprite_id','backup_index','xmax']]
+    if printall:
+        print("\nbup_xmax:")
+        print(bup_xmax)
+
+    # Merge landmark 0 xmin and xmax data
+    lm0_xmin_xmax = pd.merge(
+        bup_xmin, bup_xmax,
+        on=['sprite_id','backup_index'],
+        how='inner'
+    )
+    if printall:
+        print("\nlm0_xmin_xmax:")
+        print(lm0_xmin_xmax)
+
+    lm1_xmin = reshape_to_wide(
+        plain_sprite_list, r"^x_bup", 'xmin', rename_keyword='backup_index'
+    )[['sprite_id','backup_index','xmin']]
+    if printall:
+        print("\nlm1_xmin:")
+        print(lm1_xmin)
+
+    lm1_xmax = reshape_to_wide(
+        plain_sprite_list, r"^x_bup", 'xmax', rename_keyword='backup_index'
+    )[['sprite_id','backup_index','xmax']]
+    if printall:
+        print("\nlm1_xmax:")
+        print(lm1_xmax)
+
+    # Merge landmark 1 xmin and xmax data
+    lm1_xmin_xmax = pd.merge(
+        lm1_xmin, lm1_xmax,
+        on=['sprite_id','backup_index'],
+        how='inner'
+    )
+    if printall:
+        print("\nlm1_xmin_xmax:")
+        print(lm1_xmin_xmax)
+
+    # Get smin_bup, xmax_bup portion 
+    # (should be landmark 0, but may not be if there are 
+    # unused parameters from landmark 1)
+    lm0 = pd.merge(
+        landmarks_xwalk, lm0_xmin_xmax,
+        on=['sprite_id','backup_index'],
+        how='inner'
+    )
+    if printall:
+        print("\nlm0:")
+        print(lm0)
+
+    # Get s_bup portion 
+    # (should be landmark 1, but may not be if there are 
+    # unused parameters from landmark 0)
+    lm1 = pd.merge(
+        landmarks_xwalk, lm1_xmin_xmax,
+        on=['sprite_id','backup_index'],
+        how='inner'
+    )
+    if printall:
+        print("\nlm1:")
+        print(lm1)
+    
+    # Stack lm0 and lm1 for complete crosswalk
+    landmarks_xwalk = pd.concat([lm0, lm1])
+    
+    # Recast appropriate parameters to numeric
+    landmarks_xwalk['landmark_sprite'] = (
+        pd.to_numeric(landmarks_xwalk['landmark_sprite'], errors='coerce')
+          .astype('Int64')
+    )
+    landmarks_xwalk['backup_index'] = (
+        pd.to_numeric(landmarks_xwalk['backup_index'], errors='coerce')
+          .astype('Int64')
+    )
+    landmarks_xwalk['prop_id'] = (
+        pd.to_numeric(landmarks_xwalk['prop_id'], errors='coerce')
+          .astype('Int64')
+    )
+    landmarks_xwalk['xmin'] = (
+        pd.to_numeric(landmarks_xwalk['xmin'], errors='coerce')
+    )
+    landmarks_xwalk['xmax'] = (
+        pd.to_numeric(landmarks_xwalk['xmax'], errors='coerce')
+    )
+    
+    # Print and save landmarks_xwalk
+    if printall:
+        print("\nlandmarks_xwalk:")
+        print(landmarks_xwalk)
+        landmarks_xwalk.info()
+    
+    write_sql_parquet(landmarks_xwalk, "landmarks_xwalk", gparams)
+    return landmarks_xwalk
 
 
 def reshape_to_wide(indf, search_for, rename_to, rename_keyword=None, regex=True):
