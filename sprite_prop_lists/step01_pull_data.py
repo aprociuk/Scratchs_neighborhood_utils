@@ -528,18 +528,48 @@ def split_2col_list(mypath, myfiles, gparams, mysubfldr=None):
     return status_str, mysubfldr
 
 
-def pull_editor_cmds(app, mypath, myfile, gparams):
-    platform = sys.platform
-    file_path = os.path.join(mypath, myfile)
+def pull_editor_cmds(app_type, mypath, gparams, myfile=None):
+    # Pull app and platform
+    app, platform = pull_app_and_platform(app_type)
     
+    # Pull path using mypath and myfile
+    if mypath == None:
+        file_path = None
+    elif myfile==None:
+        file_path = mypath
+    else:
+        file_path = os.path.join(mypath, myfile)
+    
+    # Translate to OS
     if platform == 'darwin':
-        open_file_cmd = f"""open {file_path} -a {app}"""
-        close_file_cmd = f"""osascript -e 'tell application "{app}" to close file "{file_path}" saving yes'"""
+        if file_path == None:
+            open_file_cmd = None
+            close_file_cmd = None
+        else:
+            open_file_cmd = f"""open {file_path} -a {app}"""
+            if myfile==None:
+                close_file_cmd = None
+            else:
+                close_file_cmd = f"""osascript -e 'tell application "{app}" to close file "{file_path}" saving yes'"""
     else:
         open_file_cmd = None
         close_file_cmd = None
     
     return open_file_cmd, close_file_cmd
+
+
+def pull_app_and_platform(app_type):
+    platform = sys.platform
+    
+    if platform == 'darwin':
+        if app_type == "editor":
+            app = "BBEdit"
+        elif app_type == "term":
+            app = "Terminal"
+    else:
+        app=None
+
+    return app, platform
 
 
 def pull_archives(path):
