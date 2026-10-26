@@ -405,27 +405,27 @@ def file_exists(mypath, myfiles):
     return all_files_exist, status_str
 
 
-def load_save_path(path=None):
+def load_save_path(path=None, buf_file=".selected_file.txt"):
     # Create buffer to store prior chosen folder
     # 1. Create file name
     params=global_parameters(report_paths=False)
-    file_name = os.path.join(params['data_path'],".selected_file.txt")
+    file_name = os.path.join(params['data_path'],buf_file)
     
     if path == None and os.path.isfile(file_name):
         # 2. Retrieve the string from the file
         with open(file_name, "r", encoding="utf-8") as file:
             path = file.read()
-        return path
     elif path == None and not os.path.isfile(file_name):
         path = os.getcwd()
         # 2. Save the string to a file
         with open(file_name, "w", encoding="utf-8") as file:
             file.write(path)
-        return path
     else:
         # 3. Save the string to a file
         with open(file_name, "w", encoding="utf-8") as file:
             file.write(path)
+    
+    return path
 
 
 def weave_scratch_list(names_file, values_file):
