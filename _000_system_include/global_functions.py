@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 #    (e.g. change paths, environment variables, etc.)
 import os
 
-def showtbl(df, maxBytes="10MB", scrollable=True, stateSave=True,  table_id="my_unique_voila_table"):
+def showtbl(df, maxBytes=0, scrollable=True, stateSave=True,  table_id="my_unique_voila_table"):
     if scrollable:
         show(
             df, 
