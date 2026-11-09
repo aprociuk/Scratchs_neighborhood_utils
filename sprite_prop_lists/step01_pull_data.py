@@ -546,7 +546,7 @@ def pull_editor_cmds(app_type, mypath, gparams, myfile=None):
             open_file_cmd = None
             close_file_cmd = None
         else:
-            open_file_cmd = f"""open {file_path} -a {app}"""
+            open_file_cmd = ["open", file_path, "-a", app]
             if myfile==None:
                 close_file_cmd = None
             else:
