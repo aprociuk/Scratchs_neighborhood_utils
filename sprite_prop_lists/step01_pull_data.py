@@ -31,16 +31,19 @@ def pull_2col_list(mypath, myfiles, gparams):
         )
         status_str = f"\nFile {myfiles[2]} already exists.  Loaded weaved list from this user edited file."
 
+    mtime = os.path.getmtime( os.path.join(mypath,myfiles[2]) )
+    
     num_cols = len(weaved_list.columns)
     if num_cols != 2:
         status_str += f"\nWARNING: sprite/prop list contains {num_cols} columns."
-    return weaved_list, status_str, num_cols
+        
+    return weaved_list, status_str, num_cols, mtime
 
 
 def build_prop_tables(mypath, myfiles, gparams, printall = False):
     all_files_exist, status_str = file_exists(mypath, myfiles[0:2])
     if all_files_exist:
-        weaved_prop, status_str2, num_cols = pull_2col_list(mypath, myfiles, gparams)
+        weaved_prop, status_str2, num_cols, mtime = pull_2col_list(mypath, myfiles, gparams)
         status_str += status_str2
         if printall:
             print("\nweaved_prop:")
@@ -74,10 +77,12 @@ def build_prop_tables(mypath, myfiles, gparams, printall = False):
     else:
         plain_prop_list = pd.DataFrame()
         status_str += "\nWARNING: Unable to load prop files."
+        mtime = 0
             
     return (
             status_str, 
-            plain_prop_list 
+            plain_prop_list,
+            mtime
     )
 
 
@@ -85,7 +90,7 @@ def build_sprite_tables(mypath, myfiles, gparams, printall = False):
     all_files_exist, status_str = file_exists(mypath, myfiles[0:2])
     if all_files_exist:
         # Build sprite list
-        weaved_sprite, status_str2, num_cols = pull_2col_list(mypath, myfiles, gparams)
+        weaved_sprite, status_str2, num_cols, mtime = pull_2col_list(mypath, myfiles, gparams)
         status_str += status_str2
         if printall:
             print("\nweaved_sprite:")
@@ -142,6 +147,7 @@ def build_sprite_tables(mypath, myfiles, gparams, printall = False):
         sprite_costumes_main = pd.DataFrame()
         landmarks_xwalk = pd.DataFrame()
         status_str += "\nWARNING: Unable to load sprite files."
+        mtime = 0
             
     return (
             status_str, 
@@ -149,7 +155,8 @@ def build_sprite_tables(mypath, myfiles, gparams, printall = False):
             plain_sprite_list, 
             uber_xwalk, 
             sprite_costumes_main,
-            landmarks_xwalk
+            landmarks_xwalk,
+            mtime
     )
 
 
