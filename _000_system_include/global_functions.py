@@ -1,6 +1,6 @@
 import pandas as pd
 import sqlite3
-from itables import show
+from itables import show, to_html_datatable
 
 # for plotting example below
 import seaborn as sns
@@ -13,7 +13,7 @@ import os
 
 def showtbl(df, maxBytes=0, scrollable=True, stateSave=True,  table_id="my_unique_voila_table"):
     if scrollable:
-        show(
+        return to_html_datatable(
             df, 
             maxBytes=maxBytes, 
             column_filters="header", 
@@ -24,7 +24,7 @@ def showtbl(df, maxBytes=0, scrollable=True, stateSave=True,  table_id="my_uniqu
             paging=False
         )
     else:
-        show(
+        return to_html_datatable(
             df, 
             maxBytes=maxBytes, 
             column_filters="header",
