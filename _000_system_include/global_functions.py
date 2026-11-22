@@ -11,26 +11,48 @@ import matplotlib.pyplot as plt
 #    (e.g. change paths, environment variables, etc.)
 import os
 
-def showtbl(df, maxBytes=0, scrollable=True, stateSave=True,  table_id="my_unique_voila_table"):
-    if scrollable:
-        return to_html_datatable(
-            df, 
-            maxBytes=maxBytes, 
-            column_filters="header", 
-            stateSave=stateSave,
-            table_id=table_id,
-            scrollY="350px", 
-            scrollCollapse=True, 
-            paging=False
-        )
+def showtbl(df, maxBytes=0, scrollable=True, stateSave=True,  table_id="my_unique_voila_table", to_background=False):
+    if to_background:
+        if scrollable:
+            return to_html_datatable(
+                df, 
+                maxBytes=maxBytes, 
+                column_filters="header", 
+                stateSave=stateSave,
+                table_id=table_id,
+                scrollY="350px", 
+                scrollCollapse=True, 
+                paging=False
+            )
+        else:
+            return to_html_datatable(
+                df, 
+                maxBytes=maxBytes, 
+                column_filters="header",
+                stateSave=stateSave,
+                table_id=table_id
+            )
     else:
-        return to_html_datatable(
-            df, 
-            maxBytes=maxBytes, 
-            column_filters="header",
-            stateSave=stateSave,
-            table_id=table_id
-        )
+        if scrollable:
+            show(
+                df, 
+                maxBytes=maxBytes, 
+                column_filters="header", 
+                stateSave=stateSave,
+                table_id=table_id,
+                scrollY="350px", 
+                scrollCollapse=True, 
+                paging=False
+            )
+        else:
+            Show(
+                df, 
+                maxBytes=maxBytes, 
+                column_filters="header",
+                stateSave=stateSave,
+                table_id=table_id
+            )
+        return None
 
 
 
